@@ -19,7 +19,12 @@ import {
 
 import SearchIcon from "@mui/icons-material/Search";
 
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  type ChangeEvent,
+  type MouseEvent
+} from "react";
 import productApi from "../api/productApi";
 import { Link } from "react-router-dom";
 
@@ -56,9 +61,11 @@ const [selectedCategory, setSelectedCategory] =
 useEffect(() => {
 
   loadCategories();
-  loadProducts();
 
 }, []);
+
+const [search, setSearch] =
+  useState("");
 
 const loadCategories = async () => {
 
@@ -81,15 +88,33 @@ const loadCategories = async () => {
 };
 
 const loadProducts = async (
-  categoryId?: number
+  categoryId?: number | null,
+  keyword?: string
 ) => {
 
   try {
 
+    const hasCategory =
+      categoryId !== null &&
+      categoryId !== undefined;
+
+    const hasKeyword =
+      Boolean(keyword?.trim());
+
     const response =
-      categoryId
+      hasCategory || hasKeyword
         ? await productApi.get(
-            `/products/category/${categoryId}`
+            "/products/filter",
+            {
+              params: {
+                categoryId: hasCategory
+                  ? categoryId
+                  : undefined,
+                keyword: hasKeyword
+                  ? keyword
+                  : undefined
+              }
+            }
           )
         : await productApi.get(
             "/products"
@@ -99,12 +124,21 @@ const loadProducts = async (
       response.data
     );
 
-  } catch (error) {
+      } catch (error) {
 
-    console.error(error);
+        console.error(error);
 
-  }
-};
+      }
+    };
+
+    useEffect(() => {
+
+      loadProducts(
+        selectedCategory,
+        search
+      );
+
+    }, [selectedCategory, search]);
 
   return (
     <Box sx={{ bgcolor: "#f1f3f6" }}>
@@ -129,6 +163,12 @@ const loadProducts = async (
 
           <TextField
             placeholder="Search products..."
+            value={search}
+            onChange={(
+              e: ChangeEvent<HTMLInputElement>
+            ) =>
+              setSearch(e.target.value)
+            }
             size="small"
             sx={{
               bgcolor: "white",
@@ -155,7 +195,9 @@ const loadProducts = async (
                   gap: 1,
                   cursor: "pointer"
                 }}
-                onClick={(e) =>
+                onClick={(
+                  e: MouseEvent<HTMLElement>
+                ) =>
                   setAnchorEl(
                     e.currentTarget
                   )
@@ -285,7 +327,7 @@ const loadProducts = async (
         </Typography>
 
         <Grid container spacing={2}>
-        {categories.map((category) => (
+        {categories.map((category: any) => (
 
   <Grid
     item
@@ -297,10 +339,6 @@ const loadProducts = async (
       onClick={() => {
 
         setSelectedCategory(
-          category.id
-        );
-
-        loadProducts(
           category.id
         );
 
@@ -341,7 +379,7 @@ const loadProducts = async (
         </Typography>
 
         <Grid container spacing={3}>
-          {products.map((product) => (
+          {products.map((product: any) => (
             <Grid
               item
               xs={12}
