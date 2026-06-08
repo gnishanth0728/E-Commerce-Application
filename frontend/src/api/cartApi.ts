@@ -9,6 +9,7 @@ const cartApi = axios.create({
 cartApi.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {
+    config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
