@@ -89,8 +89,6 @@ export default function Home() {
         message: `${product.name} added to cart!`,
         severity: "success"
       });
-
-      navigate("/cart");
     } catch (error: any) {
       setSnackbar({
         open: true,

@@ -126,7 +126,17 @@ const CartPage: React.FC = () => {
       await loadCart();
     } catch (err: any) {
       setSuccessMessage(null);
-      setError(err.response?.data?.message || "Checkout failed");
+      const responseData = err.response?.data;
+      const backendMessage =
+        responseData?.message ||
+        responseData?.error ||
+        (typeof responseData === "string" ? responseData : null);
+      const status = err.response?.status;
+
+      setError(
+        backendMessage ||
+          (status ? `Checkout failed (HTTP ${status})` : "Checkout failed")
+      );
     }
   };
 
