@@ -61,6 +61,11 @@ const [products, setProducts] =
 const [selectedCategory, setSelectedCategory] =
   useState<number | null>(null);
 
+const [currentPage, setCurrentPage] =
+  useState(1);
+
+const ITEMS_PER_PAGE = 12;
+
 useEffect(() => {
 
   loadCategories();
@@ -132,12 +137,23 @@ const loadProducts = async (
       response.data
     );
 
+    setCurrentPage(1);
+
       } catch (error) {
 
         console.error("Error loading products:", error);
 
       }
     };
+
+const paginatedProducts = products.slice(
+  (currentPage - 1) * ITEMS_PER_PAGE,
+  currentPage * ITEMS_PER_PAGE
+);
+
+const totalPages = Math.ceil(
+  products.length / ITEMS_PER_PAGE
+);
 
     useEffect(() => {
 
@@ -458,7 +474,7 @@ const loadProducts = async (
             </Box>
           ) : (
             <Grid container spacing={3}>
-              {products.map((product: any) => (
+              {paginatedProducts.map((product: any) => (
                 <Grid
                   size={{
                     xs: 12,
@@ -526,6 +542,42 @@ const loadProducts = async (
                 </Grid>
               ))}
             </Grid>
+          )}
+
+          {products.length > ITEMS_PER_PAGE && (
+            <Box
+              sx={{
+                mt: 4,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 2
+              }}
+            >
+              <Button
+                variant="contained"
+                disabled={currentPage === 1}
+                onClick={() =>
+                  setCurrentPage(currentPage - 1)
+                }
+              >
+                Previous
+              </Button>
+
+              <Typography>
+                Page {currentPage} of {totalPages}
+              </Typography>
+
+              <Button
+                variant="contained"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage(currentPage + 1)
+                }
+              >
+                Next
+              </Button>
+            </Box>
           )}
         </Container>
       </Box>
