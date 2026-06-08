@@ -66,9 +66,56 @@ const [currentPage, setCurrentPage] =
 
 const ITEMS_PER_PAGE = 12;
 
+const [currentBannerIndex, setCurrentBannerIndex] =
+  useState(0);
+
+const banners = [
+  {
+    title: "🎉 Big Billion Sale 🎉",
+    subtitle: "UP TO 70% OFF",
+    gradient: "linear-gradient(135deg, #2874f0 0%, #fb641b 50%, #ff6b6b 100%)",
+    offers: [
+      { category: "Electronics", discount: "50%" },
+      { category: "Fashion", discount: "40%" },
+      { category: "Home", discount: "45%" },
+      { category: "Sports", discount: "60%" }
+    ]
+  },
+  {
+    title: "⚡ Flash Sale ⚡",
+    subtitle: "LIMITED TIME ONLY",
+    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+    offers: [
+      { category: "Mobiles", discount: "35%" },
+      { category: "Laptops", discount: "25%" },
+      { category: "Headphones", discount: "40%" },
+      { category: "Cameras", discount: "50%" }
+    ]
+  },
+  {
+    title: "🌟 Exclusive Deals 🌟",
+    subtitle: "MEMBERS ONLY",
+    gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+    offers: [
+      { category: "Books", discount: "30%" },
+      { category: "Gaming", discount: "55%" },
+      { category: "Smart Watches", discount: "45%" },
+      { category: "Appliances", discount: "35%" }
+    ]
+  }
+];
+
 useEffect(() => {
 
   loadCategories();
+
+  const bannerInterval = setInterval(() => {
+    setCurrentBannerIndex(
+      (prev) => (prev + 1) % banners.length
+    );
+  }, 5000);
+
+  return () => clearInterval(bannerInterval);
 
 }, []);
 
@@ -334,11 +381,11 @@ const totalPages = Math.ceil(
         </Toolbar>
       </AppBar>
 
-      {/* HERO BANNER - BIG BILLION SALE */}
+      {/* HERO BANNER CAROUSEL */}
 
       <Box
         sx={{
-          background: "linear-gradient(135deg, #2874f0 0%, #fb641b 50%, #ff6b6b 100%)",
+          background: banners[currentBannerIndex].gradient,
           color: "white",
           p: 6,
           m: 3,
@@ -346,6 +393,7 @@ const totalPages = Math.ceil(
           textAlign: "center",
           position: "relative",
           overflow: "hidden",
+          transition: "all 0.8s ease-in-out",
           "&::before": {
             content: '""',
             position: "absolute",
@@ -364,21 +412,23 @@ const totalPages = Math.ceil(
             sx={{
               fontWeight: "bold",
               mb: 1,
-              textShadow: "2px 2px 4px rgba(0,0,0,0.3)"
+              textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
+              transition: "all 0.8s ease-in-out"
             }}
           >
-            🎉 Big Billion Sale 🎉
+            {banners[currentBannerIndex].title}
           </Typography>
 
           <Typography
             variant="h4"
             sx={{
-              mb: 2,
+              mb: 3,
               fontWeight: "bold",
-              color: "#fff3cd"
+              color: "#fff3cd",
+              transition: "all 0.8s ease-in-out"
             }}
           >
-            UP TO 70% OFF
+            {banners[currentBannerIndex].subtitle}
           </Typography>
 
           <Grid
@@ -389,49 +439,18 @@ const totalPages = Math.ceil(
               justifyContent: "center"
             }}
           >
-            <Grid size={{ xs: 6, md: 3 }}>
-              <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)" }}>
-                <Typography sx={{ color: "#fb641b", fontWeight: "bold" }}>
-                  Electronics
-                </Typography>
-                <Typography sx={{ color: "#2874f0", fontSize: 18, fontWeight: "bold" }}>
-                  50% OFF
-                </Typography>
-              </Paper>
-            </Grid>
-
-            <Grid size={{ xs: 6, md: 3 }}>
-              <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)" }}>
-                <Typography sx={{ color: "#fb641b", fontWeight: "bold" }}>
-                  Fashion
-                </Typography>
-                <Typography sx={{ color: "#2874f0", fontSize: 18, fontWeight: "bold" }}>
-                  40% OFF
-                </Typography>
-              </Paper>
-            </Grid>
-
-            <Grid size={{ xs: 6, md: 3 }}>
-              <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)" }}>
-                <Typography sx={{ color: "#fb641b", fontWeight: "bold" }}>
-                  Home
-                </Typography>
-                <Typography sx={{ color: "#2874f0", fontSize: 18, fontWeight: "bold" }}>
-                  45% OFF
-                </Typography>
-              </Paper>
-            </Grid>
-
-            <Grid size={{ xs: 6, md: 3 }}>
-              <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)" }}>
-                <Typography sx={{ color: "#fb641b", fontWeight: "bold" }}>
-                  Sports
-                </Typography>
-                <Typography sx={{ color: "#2874f0", fontSize: 18, fontWeight: "bold" }}>
-                  60% OFF
-                </Typography>
-              </Paper>
-            </Grid>
+            {banners[currentBannerIndex].offers.map((offer) => (
+              <Grid size={{ xs: 6, md: 3 }} key={offer.category}>
+                <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)" }}>
+                  <Typography sx={{ color: "#fb641b", fontWeight: "bold" }}>
+                    {offer.category}
+                  </Typography>
+                  <Typography sx={{ color: "#2874f0", fontSize: 18, fontWeight: "bold" }}>
+                    {offer.discount} OFF
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
           </Grid>
 
           <Button
@@ -451,6 +470,65 @@ const totalPages = Math.ceil(
           >
             SHOP NOW
           </Button>
+
+          {/* BANNER NAVIGATION */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 2,
+              mt: 4
+            }}
+          >
+            <IconButton
+              size="small"
+              onClick={() =>
+                setCurrentBannerIndex(
+                  (prev) =>
+                    (prev - 1 + banners.length) %
+                    banners.length
+                )
+              }
+              sx={{ color: "white" }}
+            >
+              ❮
+            </IconButton>
+
+            <Box sx={{ display: "flex", gap: 1 }}>
+              {banners.map((_, index) => (
+                <Box
+                  key={index}
+                  onClick={() =>
+                    setCurrentBannerIndex(index)
+                  }
+                  sx={{
+                    width: currentBannerIndex === index ? 12 : 8,
+                    height: 8,
+                    bgcolor:
+                      currentBannerIndex === index
+                        ? "white"
+                        : "rgba(255,255,255,0.5)",
+                    borderRadius: "50%",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease"
+                  }}
+                />
+              ))}
+            </Box>
+
+            <IconButton
+              size="small"
+              onClick={() =>
+                setCurrentBannerIndex(
+                  (prev) => (prev + 1) % banners.length
+                )
+              }
+              sx={{ color: "white" }}
+            >
+              ❯
+            </IconButton>
+          </Box>
         </Box>
       </Box>
 
