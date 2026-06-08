@@ -1,6 +1,7 @@
 package com.ecommerce.products.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 
 @Entity
@@ -18,9 +19,11 @@ public class Product {
 
     private BigDecimal price;
 
+    @JsonProperty("imageUrl")
+    @Column(name = "image_url")
     private String imageUrl;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private Category category;
 

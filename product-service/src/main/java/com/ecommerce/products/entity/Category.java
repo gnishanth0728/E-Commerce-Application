@@ -1,6 +1,7 @@
 package com.ecommerce.products.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "categories")
@@ -12,6 +13,8 @@ public class Category {
 
     private String name;
 
+    @JsonProperty("imageUrl")
+    @Column(name = "image_url")
     private String imageUrl;
 
     public Long getId() {

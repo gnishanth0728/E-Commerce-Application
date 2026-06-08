@@ -14,10 +14,12 @@ import {
   Paper,
   Avatar,
   Menu,
-  MenuItem
+  MenuItem,
+  IconButton
 } from "@mui/material";
 
 import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 
 import {
   useState,
@@ -101,24 +103,29 @@ const loadProducts = async (
     const hasKeyword =
       Boolean(keyword?.trim());
 
-    const response =
-      hasCategory || hasKeyword
-        ? await productApi.get(
-            "/products/filter",
-            {
-              params: {
-                categoryId: hasCategory
-                  ? categoryId
-                  : undefined,
-                keyword: hasKeyword
-                  ? keyword
-                  : undefined
-              }
-            }
-          )
-        : await productApi.get(
-            "/products"
-          );
+    let response;
+
+    if (hasCategory || hasKeyword) {
+      response = await productApi.get(
+        "/products/filter",
+        {
+          params: {
+            categoryId: hasCategory
+              ? categoryId
+              : undefined,
+            keyword: hasKeyword
+              ? keyword
+              : undefined
+          }
+        }
+      );
+    } else {
+      response = await productApi.get(
+        "/products"
+      );
+    }
+
+    console.log("Products loaded:", response.data);
 
     setProducts(
       response.data
@@ -126,7 +133,7 @@ const loadProducts = async (
 
       } catch (error) {
 
-        console.error(error);
+        console.error("Error loading products:", error);
 
       }
     };
@@ -169,6 +176,11 @@ const loadProducts = async (
             ) =>
               setSearch(e.target.value)
             }
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                loadProducts(selectedCategory, search);
+              }
+            }}
             size="small"
             sx={{
               bgcolor: "white",
@@ -178,7 +190,30 @@ const loadProducts = async (
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon />
+                  <SearchIcon sx={{ color: "#2874f0" }} />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  {search && (
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setSearch("");
+                        setSelectedCategory(null);
+                      }}
+                      sx={{ mr: 1 }}
+                    >
+                      <ClearIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                  <IconButton
+                    size="small"
+                    onClick={() => loadProducts(selectedCategory, search)}
+                    sx={{ color: "#2874f0" }}
+                  >
+                    <SearchIcon fontSize="small" />
+                  </IconButton>
                 </InputAdornment>
               )
             }}
@@ -367,82 +402,122 @@ const loadProducts = async (
         </Grid>
       </Container>
 
-      {/* PRODUCTS */}
+      {/* SEARCH RESULTS / PRODUCTS SECTION */}
 
-      <Container sx={{ mt: 5 }}>
-        <Typography
-          variant="h5"
-          fontWeight="bold"
-          mb={3}
-        >
-          Featured Products
-        </Typography>
-
-        <Grid container spacing={3}>
-          {products.map((product: any) => (
-            <Grid
-              item
-              xs={12}
-              md={3}
-              key={product.id}
-            >
-              <Card
-                sx={{
-                  transition: "0.3s",
-                  "&:hover": {
-                    transform:
-                      "translateY(-6px)"
-                  }
+      <Box
+        sx={{
+          mt: 5,
+          py: 4,
+          bgcolor: search ? "#e3f2fd" : "#f1f3f6",
+          transition: "background-color 0.3s ease"
+        }}
+      >
+        <Container>
+          <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Box>
+              <Typography
+                variant="h5"
+                fontWeight="bold"
+              >
+                {search ? `Search Results for "${search}"` : selectedCategory ? "Category Products" : "Featured Products"}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Found {products.length} product{products.length !== 1 ? "s" : ""}
+              </Typography>
+            </Box>
+            {(search || selectedCategory) && (
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => {
+                  setSearch("");
+                  setSelectedCategory(null);
                 }}
               >
-               <CardMedia
-  component="img"
-  height="220"
-  image={
-    product.imageUrl ||
-    "https://picsum.photos/300/200"
-  }
-      />
+                Clear Filters
+              </Button>
+            )}
+          </Box>
 
-      <CardContent>
+          {products.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 6 }}>
+              <Typography variant="h6" color="text.secondary">
+                No products found
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Try adjusting your search or filters
+              </Typography>
+            </Box>
+          ) : (
+            <Grid container spacing={3}>
+              {products.map((product: any) => (
+                <Grid
+                  item
+                  xs={12}
+                  md={3}
+                  key={product.id}
+                >
+                  <Card
+                    sx={{
+                      transition: "0.3s",
+                      "&:hover": {
+                        transform:
+                          "translateY(-6px)",
+                        boxShadow: "0 8px 16px rgba(0,0,0,0.2)"
+                      }
+                    }}
+                  >
+                    <CardMedia
+                      component="img"
+                      height="220"
+                      image={
+                        product.imageUrl ||
+                        "https://picsum.photos/300/200"
+                      }
+                    />
 
-        <Typography
-          variant="h6"
-          fontWeight="bold"
-        >
-          {product.name}
-        </Typography>
+                    <CardContent>
 
-        <Typography
-          color="primary"
-          fontWeight="bold"
-        >
-          ₹{product.price}
-        </Typography>
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                      >
+                        {product.name}
+                      </Typography>
 
-        <Typography
-          variant="body2"
-          color="text.secondary"
-        >
-          {product.description}
-        </Typography>
+                      <Typography
+                        color="primary"
+                        fontWeight="bold"
+                        sx={{ mt: 1 }}
+                      >
+                        ₹{product.price}
+                      </Typography>
 
-        <Button
-          fullWidth
-          variant="contained"
-          sx={{ mt: 2 }}
-        >
-          Add To Cart
-        </Button>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 1, mb: 2 }}
+                      >
+                        {product.description}
+                      </Typography>
 
-      </CardContent>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        sx={{ mt: 1, bgcolor: "#2874f0" }}
+                      >
+                        Add To Cart
+                      </Button>
 
+                    </CardContent>
 
-              </Card>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
-      </Container>
+          )}
+        </Container>
+      </Box>
 
       {/* FOOTER */}
 
