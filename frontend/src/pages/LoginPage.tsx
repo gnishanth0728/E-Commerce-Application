@@ -151,7 +151,7 @@ export default function LoginPage() {
           <Box>
             <Typography
               variant="h4"
-              fontWeight="bold"
+              sx={{ fontWeight: "bold" }}
             >
               Login
             </Typography>
@@ -219,24 +219,26 @@ export default function LoginPage() {
                 errors.password
                   ?.message
               }
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() =>
-                        setShowPassword(
-                          !showPassword
-                        )
-                      }
-                    >
-                      {showPassword ? (
-                        <VisibilityOff />
-                      ) : (
-                        <Visibility />
-                      )}
-                    </IconButton>
-                  </InputAdornment>
-                )
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() =>
+                          setShowPassword(
+                            !showPassword
+                          )
+                        }
+                      >
+                        {showPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }
               }}
             />
 
@@ -279,8 +281,10 @@ export default function LoginPage() {
             </Button>
 
             <Box
-              textAlign="center"
-              mt={4}
+              sx={{
+                textAlign: "center",
+                mt: 4
+              }}
             >
               <Typography>
                 New User?{" "}

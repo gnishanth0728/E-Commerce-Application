@@ -25,6 +25,7 @@ import {
   useState,
   useEffect,
   type ChangeEvent,
+  type KeyboardEvent,
   type MouseEvent
 } from "react";
 import productApi from "../api/productApi";
@@ -163,7 +164,7 @@ const loadProducts = async (
 
           <Typography
             variant="h5"
-            fontWeight="bold"
+            sx={{ fontWeight: "bold" }}
           >
             ShopEase
           </Typography>
@@ -176,7 +177,9 @@ const loadProducts = async (
             ) =>
               setSearch(e.target.value)
             }
-            onKeyPress={(e) => {
+            onKeyDown={(
+              e: KeyboardEvent<HTMLInputElement>
+            ) => {
               if (e.key === "Enter") {
                 loadProducts(selectedCategory, search);
               }
@@ -187,35 +190,37 @@ const loadProducts = async (
               width: 500,
               borderRadius: 1
             }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "#2874f0" }} />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  {search && (
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: "#2874f0" }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    {search && (
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setSearch("");
+                          setSelectedCategory(null);
+                        }}
+                        sx={{ mr: 1 }}
+                      >
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    )}
                     <IconButton
                       size="small"
-                      onClick={() => {
-                        setSearch("");
-                        setSelectedCategory(null);
-                      }}
-                      sx={{ mr: 1 }}
+                      onClick={() => loadProducts(selectedCategory, search)}
+                      sx={{ color: "#2874f0" }}
                     >
-                      <ClearIcon fontSize="small" />
+                      <SearchIcon fontSize="small" />
                     </IconButton>
-                  )}
-                  <IconButton
-                    size="small"
-                    onClick={() => loadProducts(selectedCategory, search)}
-                    sx={{ color: "#2874f0" }}
-                  >
-                    <SearchIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              )
+                  </InputAdornment>
+                )
+              }
             }}
           />
 
@@ -328,10 +333,10 @@ const loadProducts = async (
           color: "white"
         }}
       >
-        <Box textAlign="center">
+        <Box sx={{ textAlign: "center" }}>
           <Typography
             variant="h2"
-            fontWeight="bold"
+            sx={{ fontWeight: "bold" }}
           >
             Big Billion Sale
           </Typography>
@@ -355,7 +360,7 @@ const loadProducts = async (
       <Container>
         <Typography
           variant="h5"
-          fontWeight="bold"
+          sx={{ fontWeight: "bold" }}
           mb={3}
         >
           Categories
@@ -417,7 +422,7 @@ const loadProducts = async (
             <Box>
               <Typography
                 variant="h5"
-                fontWeight="bold"
+                sx={{ fontWeight: "bold" }}
               >
                 {search ? `Search Results for "${search}"` : selectedCategory ? "Category Products" : "Featured Products"}
               </Typography>
@@ -480,15 +485,17 @@ const loadProducts = async (
 
                       <Typography
                         variant="h6"
-                        fontWeight="bold"
+                        sx={{ fontWeight: "bold" }}
                       >
                         {product.name}
                       </Typography>
 
                       <Typography
                         color="primary"
-                        fontWeight="bold"
-                        sx={{ mt: 1 }}
+                        sx={{
+                          fontWeight: "bold",
+                          mt: 1
+                        }}
                       >
                         ₹{product.price}
                       </Typography>

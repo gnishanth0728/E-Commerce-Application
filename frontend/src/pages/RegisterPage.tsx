@@ -189,7 +189,7 @@ export default function RegisterPage() {
           <Box>
             <Typography
               variant="h4"
-              fontWeight="bold"
+              sx={{ fontWeight: "bold" }}
             >
               Looks like
               you're new here!
@@ -263,24 +263,26 @@ export default function RegisterPage() {
               helperText={
                 errors.password?.message
               }
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() =>
-                        setShowPassword(
-                          !showPassword
-                        )
-                      }
-                    >
-                      {showPassword ? (
-                        <VisibilityOff />
-                      ) : (
-                        <Visibility />
-                      )}
-                    </IconButton>
-                  </InputAdornment>
-                )
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() =>
+                          setShowPassword(
+                            !showPassword
+                          )
+                        }
+                      >
+                        {showPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }
               }}
             />
 
@@ -309,24 +311,26 @@ export default function RegisterPage() {
                 errors.confirmPassword
                   ?.message
               }
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() =>
-                        setShowConfirmPassword(
-                          !showConfirmPassword
-                        )
-                      }
-                    >
-                      {showConfirmPassword ? (
-                        <VisibilityOff />
-                      ) : (
-                        <Visibility />
-                      )}
-                    </IconButton>
-                  </InputAdornment>
-                )
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() =>
+                          setShowConfirmPassword(
+                            !showConfirmPassword
+                          )
+                        }
+                      >
+                        {showConfirmPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }
               }}
             />
 
@@ -356,8 +360,10 @@ export default function RegisterPage() {
             </Button>
 
             <Box
-              textAlign="center"
-              mt={4}
+              sx={{
+                textAlign: "center",
+                mt: 4
+              }}
             >
               <Typography>
                 Existing User?{" "}

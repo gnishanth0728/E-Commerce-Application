@@ -32,6 +32,11 @@ Nginx receives all browser requests on port 80 and routes by path:
 - `/api/auth/*` -> Auth Service (`:8080`)
 - `/api/product/*` -> Product Service (`:8081`) with rewrite from `/api/product/*` to `/api/*`
 
+Public exposure policy:
+- Public: only Nginx on port `80`
+- Internal-only: Auth Service `8080`, Product Service `8081`, databases `5432` and `3306`
+- In cloud firewall/security-group rules, allow inbound `80` (and `443` if TLS), block public inbound to `8080`, `8081`, `5432`, `3306`
+
 Frontend uses relative API URLs:
 - `frontend/src/api/authApi.ts` -> `/api/auth`
 - `frontend/src/api/productApi.ts` -> `/api/product`
@@ -136,10 +141,18 @@ Auth:
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 
+Auth access policy:
+- Public endpoints: `/api/auth/login`, `/api/auth/register`
+- Other auth endpoints require authentication
+
 Products:
 - `GET /api/product/products`
 - `GET /api/product/products/filter?categoryId=1&keyword=phone`
 - `GET /api/product/categories`
+
+Product access policy:
+- Public read endpoints: `GET /api/product/**`
+- Protected write endpoints: `POST /api/product/products`, `POST /api/product/categories` (JWT required)
 
 ## Troubleshooting
 
@@ -158,6 +171,10 @@ docker compose logs -f
 - Confirm backend is bound to all interfaces:
 	- Auth: `server.address: 0.0.0.0`
 	- Product: `server.address=0.0.0.0`
+
+- CORS origins enabled in backend security:
+	- `http://localhost:5173`
+	- `http://18.207.151.13`
 
 - If running Nginx in Docker on Linux, `host.docker.internal` is mapped via:
 	- `extra_hosts: ["host.docker.internal:host-gateway"]`
