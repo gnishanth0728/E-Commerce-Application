@@ -55,15 +55,25 @@ const CartPage: React.FC = () => {
   const loadCart = async () => {
     try {
       setLoading(true);
+      console.log("Calling getCart API...");
       const response = await getCart();
+      console.log("API Response:", response);
+      console.log("Cart data:", response.data);
       setCart(response.data);
+      console.log("Cart state updated with items:", response.data?.items?.length || 0);
       setError(null);
     } catch (err: any) {
+      console.error("Error loading cart:", err);
+      console.error("Error details:", {
+        status: err.response?.status,
+        message: err.message,
+        data: err.response?.data,
+      });
       if (err.response?.status === 401) {
         setError("Please login to view your cart");
         navigate("/login");
       } else {
-        setError("Failed to load cart");
+        setError("Failed to load cart: " + (err.message || "Unknown error"));
       }
     } finally {
       setLoading(false);
