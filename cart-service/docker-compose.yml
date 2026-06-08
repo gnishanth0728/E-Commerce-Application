@@ -19,22 +19,6 @@ services:
       timeout: 20s
       retries: 10
 
-  cart-service:
-    build: .
-    container_name: cart-service
-    ports:
-      - "8082:8082"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://cart-db:3306/ecommerce_cart
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      JWT_SECRET: mysecretkeymysecretkeymysecretkey12345
-    depends_on:
-      cart-db:
-        condition: service_healthy
-    networks:
-      - ecommerce-network
-
 volumes:
   cart-db-data:
 
