@@ -10,7 +10,6 @@ import {
   Divider,
   Card,
   CardMedia,
-  CardContent,
   IconButton,
   Alert,
 } from "@mui/material";
