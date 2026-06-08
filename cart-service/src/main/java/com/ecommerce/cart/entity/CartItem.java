@@ -42,6 +42,9 @@ public class CartItem {
     @Column(nullable = false)
     private Long createdAt = System.currentTimeMillis();
 
+    @Column(nullable = false)
+    private Long updatedAt = System.currentTimeMillis();
+
     public Double getTotalPrice() {
         return price * quantity;
     }
