@@ -334,42 +334,125 @@ const totalPages = Math.ceil(
         </Toolbar>
       </AppBar>
 
-      {/* HERO BANNER */}
+      {/* HERO BANNER - BIG BILLION SALE */}
 
-      <Paper
+      <Box
         sx={{
+          background: "linear-gradient(135deg, #2874f0 0%, #fb641b 50%, #ff6b6b 100%)",
+          color: "white",
+          p: 6,
           m: 3,
-          height: 350,
           borderRadius: 2,
-          background:
-            "linear-gradient(135deg,#2874f0,#4facfe)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "white"
+          textAlign: "center",
+          position: "relative",
+          overflow: "hidden",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)",
+            pointerEvents: "none"
+          }
         }}
       >
-        <Box sx={{ textAlign: "center" }}>
+        <Box sx={{ position: "relative", zIndex: 1 }}>
           <Typography
             variant="h2"
-            sx={{ fontWeight: "bold" }}
+            sx={{
+              fontWeight: "bold",
+              mb: 1,
+              textShadow: "2px 2px 4px rgba(0,0,0,0.3)"
+            }}
           >
-            Big Billion Sale
+            🎉 Big Billion Sale 🎉
           </Typography>
 
-          <Typography variant="h5">
-            Up to 70% OFF
+          <Typography
+            variant="h4"
+            sx={{
+              mb: 2,
+              fontWeight: "bold",
+              color: "#fff3cd"
+            }}
+          >
+            UP TO 70% OFF
           </Typography>
+
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              my: 3,
+              justifyContent: "center"
+            }}
+          >
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)" }}>
+                <Typography sx={{ color: "#fb641b", fontWeight: "bold" }}>
+                  Electronics
+                </Typography>
+                <Typography sx={{ color: "#2874f0", fontSize: 18, fontWeight: "bold" }}>
+                  50% OFF
+                </Typography>
+              </Paper>
+            </Grid>
+
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)" }}>
+                <Typography sx={{ color: "#fb641b", fontWeight: "bold" }}>
+                  Fashion
+                </Typography>
+                <Typography sx={{ color: "#2874f0", fontSize: 18, fontWeight: "bold" }}>
+                  40% OFF
+                </Typography>
+              </Paper>
+            </Grid>
+
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)" }}>
+                <Typography sx={{ color: "#fb641b", fontWeight: "bold" }}>
+                  Home
+                </Typography>
+                <Typography sx={{ color: "#2874f0", fontSize: 18, fontWeight: "bold" }}>
+                  45% OFF
+                </Typography>
+              </Paper>
+            </Grid>
+
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)" }}>
+                <Typography sx={{ color: "#fb641b", fontWeight: "bold" }}>
+                  Sports
+                </Typography>
+                <Typography sx={{ color: "#2874f0", fontSize: 18, fontWeight: "bold" }}>
+                  60% OFF
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
 
           <Button
             variant="contained"
-            color="warning"
-            sx={{ mt: 3 }}
+            sx={{
+              bgcolor: "#fff3cd",
+              color: "#fb641b",
+              fontWeight: "bold",
+              fontSize: 16,
+              px: 4,
+              py: 1.5,
+              "&:hover": {
+                bgcolor: "#fff",
+                transform: "scale(1.05)"
+              }
+            }}
           >
-            Shop Now
+            SHOP NOW
           </Button>
         </Box>
-      </Paper>
+      </Box>
 
       {/* CATEGORIES */}
 
@@ -485,6 +568,7 @@ const totalPages = Math.ceil(
                   <Card
                     sx={{
                       transition: "0.3s",
+                      position: "relative",
                       "&:hover": {
                         transform:
                           "translateY(-6px)",
@@ -492,6 +576,29 @@ const totalPages = Math.ceil(
                       }
                     }}
                   >
+                    {/* DISCOUNT BADGE */}
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 10,
+                        right: 10,
+                        bgcolor: "#ff5252",
+                        color: "white",
+                        borderRadius: "50%",
+                        width: 50,
+                        height: 50,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "bold",
+                        fontSize: 12,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                        zIndex: 1
+                      }}
+                    >
+                      {Math.floor(Math.random() * (60 - 15 + 1)) + 15}% OFF
+                    </Box>
+
                     <CardMedia
                       component="img"
                       height="220"
