@@ -15,7 +15,7 @@ cartApi.interceptors.request.use((config) => {
   return config;
 });
 
-export const getCart = () => cartApi.get("/");
+export const getCart = () => cartApi.get();
 export const addToCart = (product: {
   productId: number;
   productName: string;

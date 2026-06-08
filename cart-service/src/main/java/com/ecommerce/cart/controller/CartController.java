@@ -14,7 +14,7 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    @GetMapping
+    @GetMapping({"", "/"})
     public Cart getCart(Authentication authentication) {
         String userEmail = (String) authentication.getPrincipal();
         return cartService.getCart(userEmail);
