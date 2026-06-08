@@ -21,6 +21,7 @@ import {
   removeFromCart,
   updateCartItem,
   clearCart,
+  checkoutCart,
 } from "../api/cartApi";
 import { useNavigate } from "react-router-dom";
 
@@ -46,6 +47,7 @@ const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -111,6 +113,23 @@ const CartPage: React.FC = () => {
     }
   };
 
+  const handleCheckout = async () => {
+    try {
+      setError(null);
+      const response = await checkoutCart();
+      const checkoutData = response.data;
+      setSuccessMessage(
+        `Order ${checkoutData.orderId} placed successfully for ₹${Number(
+          checkoutData.totalPrice || 0
+        ).toFixed(2)}`
+      );
+      await loadCart();
+    } catch (err: any) {
+      setSuccessMessage(null);
+      setError(err.response?.data?.message || "Checkout failed");
+    }
+  };
+
   const calculateTotalPrice = () => {
     return cart?.items?.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
   };
@@ -134,6 +153,7 @@ const CartPage: React.FC = () => {
       </Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
 
       {cart && cart.items && cart.items.length > 0 ? (
         <Grid container spacing={3}>
@@ -246,6 +266,7 @@ const CartPage: React.FC = () => {
               <Button
                 variant="contained"
                 fullWidth
+                onClick={handleCheckout}
                 sx={{
                   bgcolor: "#2874f0",
                   mb: 1,

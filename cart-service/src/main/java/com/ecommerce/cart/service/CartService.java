@@ -1,6 +1,7 @@
 package com.ecommerce.cart.service;
 
 import com.ecommerce.cart.dto.AddToCartRequest;
+import com.ecommerce.cart.dto.CheckoutResponse;
 import com.ecommerce.cart.entity.Cart;
 import com.ecommerce.cart.entity.CartItem;
 import com.ecommerce.cart.repository.CartItemRepository;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.Optional;
 
 @Service
@@ -96,5 +98,27 @@ public class CartService {
             cart.get().getItems().clear();
             cartRepository.save(cart.get());
         }
+    }
+
+    public CheckoutResponse checkout(String userEmail) {
+        Cart cart = getOrCreateCart(userEmail);
+
+        if (cart.getItems() == null || cart.getItems().isEmpty()) {
+            throw new IllegalStateException("Cart is empty. Add items before checkout.");
+        }
+
+        CheckoutResponse response = new CheckoutResponse();
+        response.setOrderId("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        response.setUserEmail(userEmail);
+        response.setTotalItems(cart.getTotalItems());
+        response.setTotalPrice(cart.getTotalPrice());
+        response.setCheckoutAt(System.currentTimeMillis());
+        response.setMessage("Checkout completed successfully");
+
+        cart.getItems().clear();
+        cart.setUpdatedAt(System.currentTimeMillis());
+        cartRepository.save(cart);
+
+        return response;
     }
 }
