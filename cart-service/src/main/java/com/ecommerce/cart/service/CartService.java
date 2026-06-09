@@ -2,14 +2,18 @@ package com.ecommerce.cart.service;
 
 import com.ecommerce.cart.dto.AddToCartRequest;
 import com.ecommerce.cart.dto.CheckoutResponse;
+import com.ecommerce.cart.entity.Order;
+import com.ecommerce.cart.entity.OrderItem;
 import com.ecommerce.cart.entity.Cart;
 import com.ecommerce.cart.entity.CartItem;
 import com.ecommerce.cart.repository.CartItemRepository;
 import com.ecommerce.cart.repository.CartRepository;
+import com.ecommerce.cart.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.Optional;
@@ -23,6 +27,9 @@ public class CartService {
 
     @Autowired
     private CartItemRepository cartItemRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     public Cart getOrCreateCart(String userEmail) {
         return cartRepository.findByUserEmail(userEmail)
@@ -100,6 +107,10 @@ public class CartService {
         }
     }
 
+    public List<Order> getOrderHistory(String userEmail) {
+        return orderRepository.findByUserEmailOrderByCheckoutAtDesc(userEmail);
+    }
+
     public CheckoutResponse checkout(String userEmail) {
         Cart cart = getOrCreateCart(userEmail);
 
@@ -107,8 +118,32 @@ public class CartService {
             throw new IllegalStateException("Cart is empty. Add items before checkout.");
         }
 
+        String generatedOrderId = "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+        Order order = new Order();
+        order.setOrderId(generatedOrderId);
+        order.setUserEmail(userEmail);
+        order.setCheckoutAt(System.currentTimeMillis());
+        order.setTotalItems(cart.getTotalItems());
+        order.setTotalPrice(cart.getTotalPrice());
+
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (CartItem cartItem : cart.getItems()) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setProductId(cartItem.getProductId());
+            orderItem.setProductName(cartItem.getProductName());
+            orderItem.setPrice(cartItem.getPrice());
+            orderItem.setQuantity(cartItem.getQuantity());
+            orderItem.setImageUrl(cartItem.getImageUrl());
+            orderItem.setTotalPrice(cartItem.getPrice() * cartItem.getQuantity());
+            orderItems.add(orderItem);
+        }
+        order.setItems(orderItems);
+        orderRepository.save(order);
+
         CheckoutResponse response = new CheckoutResponse();
-        response.setOrderId("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        response.setOrderId(generatedOrderId);
         response.setUserEmail(userEmail);
         response.setTotalItems(cart.getTotalItems());
         response.setTotalPrice(cart.getTotalPrice());

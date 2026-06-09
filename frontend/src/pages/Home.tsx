@@ -388,7 +388,11 @@ const totalPages = Math.ceil(
                   My Profile
                 </MenuItem>
 
-                <MenuItem>
+                <MenuItem
+                  component={Link}
+                  to="/orders"
+                  onClick={() => setAnchorEl(null)}
+                >
                   Orders
                 </MenuItem>
 
