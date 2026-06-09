@@ -33,7 +33,7 @@ import {
 } from "react";
 import productApi from "../api/productApi";
 import { addToCart } from "../api/cartApi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 
 export default function Home() {
@@ -42,8 +42,6 @@ export default function Home() {
 
   const username =
     localStorage.getItem("username");
-
-  const navigate = useNavigate();
 
   const [anchorEl, setAnchorEl] =
     useState<null | HTMLElement>(null);
@@ -71,7 +69,6 @@ export default function Home() {
         message: "Please login to add items to cart",
         severity: "error"
       });
-      navigate("/login");
       return;
     }
 
@@ -86,7 +83,7 @@ export default function Home() {
 
       setSnackbar({
         open: true,
-        message: `${product.name} added to cart!`,
+        message: "Item added to cart",
         severity: "success"
       });
     } catch (error: any) {
