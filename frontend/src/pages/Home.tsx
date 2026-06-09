@@ -16,6 +16,7 @@ import {
   Menu,
   MenuItem,
   IconButton,
+  Badge,
   Snackbar,
   Alert
 } from "@mui/material";
@@ -32,7 +33,7 @@ import {
   type MouseEvent
 } from "react";
 import productApi from "../api/productApi";
-import { addToCart } from "../api/cartApi";
+import { addToCart, getCart } from "../api/cartApi";
 import { Link, useNavigate } from "react-router-dom";
 
 
@@ -55,6 +56,24 @@ export default function Home() {
     message: "",
     severity: "success" as "success" | "error"
   });
+
+  const [cartItemCount, setCartItemCount] =
+    useState(0);
+
+  const loadCartCount = async () => {
+    try {
+      const response = await getCart();
+      const totalItems = response.data?.totalItems ??
+        response.data?.items?.reduce(
+          (sum: number, item: any) => sum + (item.quantity || 0),
+          0
+        ) ?? 0;
+
+      setCartItemCount(totalItems);
+    } catch (error) {
+      console.error("Error loading cart count:", error);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -88,6 +107,8 @@ export default function Home() {
         message: "Item added to cart",
         severity: "success"
       });
+
+      setCartItemCount((prev: number) => prev + 1);
     } catch (error: any) {
       setSnackbar({
         open: true,
@@ -149,6 +170,17 @@ const banners = [
     ]
   }
 ];
+
+useEffect(() => {
+
+  if (!token) {
+    setCartItemCount(0);
+    return;
+  }
+
+  loadCartCount();
+
+}, [token]);
 
 useEffect(() => {
 
@@ -341,7 +373,12 @@ const totalPages = Math.ceil(
                 to="/cart"
                 sx={{ color: "white" }}
               >
-                <ShoppingCartIcon />
+                <Badge
+                  badgeContent={cartItemCount}
+                  color="error"
+                >
+                  <ShoppingCartIcon />
+                </Badge>
               </IconButton>
 
               <Box
