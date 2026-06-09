@@ -9,14 +9,23 @@ import com.ecommerce.cart.entity.CartItem;
 import com.ecommerce.cart.repository.CartItemRepository;
 import com.ecommerce.cart.repository.CartRepository;
 import com.ecommerce.cart.repository.OrderRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -30,6 +39,35 @@ public class CartService {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Value("${payment.service.url}")
+    private String paymentServiceUrl;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    private void processPayment(String orderId, String userEmail, Integer totalItems, Double totalPrice) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("orderId", orderId);
+            payload.put("userEmail", userEmail);
+            payload.put("totalItems", totalItems);
+            payload.put("amount", totalPrice);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(paymentServiceUrl, request, Map.class);
+            Object status = response.getBody() != null ? response.getBody().get("status") : null;
+
+            if (!response.getStatusCode().is2xxSuccessful() || status == null || !"SUCCESS".equalsIgnoreCase(status.toString())) {
+                throw new IllegalStateException("Payment failed. Please try again.");
+            }
+        } catch (RestClientException ex) {
+            throw new IllegalStateException("Payment service unavailable. Please try again.");
+        }
+    }
 
     public Cart getOrCreateCart(String userEmail) {
         return cartRepository.findByUserEmail(userEmail)
@@ -119,6 +157,7 @@ public class CartService {
         }
 
         String generatedOrderId = "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        processPayment(generatedOrderId, userEmail, cart.getTotalItems(), cart.getTotalPrice());
 
         Order order = new Order();
         order.setOrderId(generatedOrderId);

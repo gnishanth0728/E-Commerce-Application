@@ -12,6 +12,10 @@ import {
   CardMedia,
   IconButton,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -43,11 +47,26 @@ interface Cart {
   totalItems?: number;
 }
 
+interface PaymentForm {
+  cardHolderName: string;
+  cardNumber: string;
+  expiryDate: string;
+  cvv: string;
+}
+
 const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
+  const [paymentErrors, setPaymentErrors] = useState<Partial<PaymentForm>>({});
+  const [paymentForm, setPaymentForm] = useState<PaymentForm>({
+    cardHolderName: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -116,6 +135,7 @@ const CartPage: React.FC = () => {
   const handleCheckout = async () => {
     try {
       setError(null);
+      setCheckoutDialogOpen(false);
       const response = await checkoutCart();
       const checkoutData = response.data;
       setSuccessMessage(
@@ -140,12 +160,66 @@ const CartPage: React.FC = () => {
     }
   };
 
+  const resetPaymentForm = () => {
+    setPaymentForm({
+      cardHolderName: "",
+      cardNumber: "",
+      expiryDate: "",
+      cvv: "",
+    });
+    setPaymentErrors({});
+  };
+
+  const handleOpenCheckoutDialog = () => {
+    setError(null);
+    setSuccessMessage(null);
+    setCheckoutDialogOpen(true);
+  };
+
+  const handleCloseCheckoutDialog = () => {
+    setCheckoutDialogOpen(false);
+    setPaymentErrors({});
+  };
+
+  const validatePaymentForm = () => {
+    const errors: Partial<PaymentForm> = {};
+
+    if (!paymentForm.cardHolderName.trim()) {
+      errors.cardHolderName = "Card holder name is required";
+    }
+
+    const cleanedCardNumber = paymentForm.cardNumber.replace(/\s/g, "");
+    if (!/^\d{16}$/.test(cleanedCardNumber)) {
+      errors.cardNumber = "Card number must be 16 digits";
+    }
+
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(paymentForm.expiryDate)) {
+      errors.expiryDate = "Expiry must be in MM/YY format";
+    }
+
+    if (!/^\d{3}$/.test(paymentForm.cvv)) {
+      errors.cvv = "CVV must be 3 digits";
+    }
+
+    setPaymentErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleConfirmCheckout = async () => {
+    if (!validatePaymentForm()) {
+      return;
+    }
+
+    await handleCheckout();
+    resetPaymentForm();
+  };
+
   const calculateTotalPrice = () => {
-    return cart?.items?.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
+    return cart?.items?.reduce((sum: number, item: CartItem) => sum + item.price * item.quantity, 0) || 0;
   };
 
   const calculateTotalItems = () => {
-    return cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+    return cart?.items?.reduce((sum: number, item: CartItem) => sum + item.quantity, 0) || 0;
   };
 
   if (loading) {
@@ -169,7 +243,7 @@ const CartPage: React.FC = () => {
         <Grid container spacing={3}>
           {/* Cart Items */}
           <Grid size={{ xs: 12, md: 8 }}>
-            {cart.items.map((item) => (
+            {cart.items.map((item: CartItem) => (
               <Card key={item.id} sx={{ mb: 2, display: "flex" }}>
                 {item.imageUrl && (
                   <CardMedia
@@ -200,7 +274,7 @@ const CartPage: React.FC = () => {
                       type="number"
                       size="small"
                       value={item.quantity}
-                      onChange={(e) =>
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         handleUpdateQuantity(
                           item.productId,
                           parseInt(e.target.value) || 1
@@ -276,7 +350,7 @@ const CartPage: React.FC = () => {
               <Button
                 variant="contained"
                 fullWidth
-                onClick={handleCheckout}
+                onClick={handleOpenCheckoutDialog}
                 sx={{
                   bgcolor: "#2874f0",
                   mb: 1,
@@ -320,6 +394,108 @@ const CartPage: React.FC = () => {
           </Button>
         </Paper>
       )}
+
+      <Dialog
+        open={checkoutDialogOpen}
+        onClose={handleCloseCheckoutDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Checkout Details</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+            Cart Summary
+          </Typography>
+
+          {cart?.items?.map((item: CartItem) => (
+            <Box
+              key={item.id}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                mb: 0.5,
+              }}
+            >
+              <Typography variant="body2">
+                {item.productName} x {item.quantity}
+              </Typography>
+              <Typography variant="body2">
+                ₹{(item.price * item.quantity).toFixed(2)}
+              </Typography>
+            </Box>
+          ))}
+
+          <Divider sx={{ my: 2 }} />
+
+          <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+            Payment Details
+          </Typography>
+
+          <TextField
+            fullWidth
+            label="Card Holder Name"
+            value={paymentForm.cardHolderName}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setPaymentForm({ ...paymentForm, cardHolderName: e.target.value })
+            }
+            error={Boolean(paymentErrors.cardHolderName)}
+            helperText={paymentErrors.cardHolderName}
+            margin="dense"
+          />
+
+          <TextField
+            fullWidth
+            label="Card Number"
+            value={paymentForm.cardNumber}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setPaymentForm({ ...paymentForm, cardNumber: e.target.value })
+            }
+            error={Boolean(paymentErrors.cardNumber)}
+            helperText={paymentErrors.cardNumber || "Enter 16-digit card number"}
+            margin="dense"
+          />
+
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Expiry (MM/YY)"
+              value={paymentForm.expiryDate}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPaymentForm({ ...paymentForm, expiryDate: e.target.value })
+              }
+              error={Boolean(paymentErrors.expiryDate)}
+              helperText={paymentErrors.expiryDate}
+              margin="dense"
+            />
+
+            <TextField
+              fullWidth
+              label="CVV"
+              type="password"
+              value={paymentForm.cvv}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPaymentForm({ ...paymentForm, cvv: e.target.value })
+              }
+              error={Boolean(paymentErrors.cvv)}
+              helperText={paymentErrors.cvv}
+              margin="dense"
+            />
+          </Box>
+
+          <Typography sx={{ mt: 2, fontWeight: "bold" }}>
+            Total Payable: ₹{calculateTotalPrice().toFixed(2)}
+          </Typography>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={handleCloseCheckoutDialog} variant="outlined">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmCheckout} variant="contained">
+            Pay & Place Order
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
