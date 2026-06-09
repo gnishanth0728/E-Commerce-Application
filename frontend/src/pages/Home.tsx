@@ -108,7 +108,7 @@ export default function Home() {
         severity: "success"
       });
 
-      setCartItemCount((prev: number) => prev + 1);
+      await loadCartCount();
     } catch (error: any) {
       setSnackbar({
         open: true,
@@ -376,6 +376,13 @@ const totalPages = Math.ceil(
                 <Badge
                   badgeContent={cartItemCount}
                   color="error"
+                  showZero
+                  max={999}
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      fontWeight: "bold"
+                    }
+                  }}
                 >
                   <ShoppingCartIcon />
                 </Badge>
