@@ -18,7 +18,7 @@ import {
   DialogActions,
   Checkbox,
   FormControlLabel,
-  MenuItem,
+  Autocomplete,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -683,31 +683,27 @@ const CartPage: React.FC = () => {
               margin="dense"
             />
 
-            <TextField
+            <Autocomplete
               fullWidth
-              select
-              label="Select Place (City - PIN)"
-              value={selectedPlace}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handlePlaceSelection(e.target.value)
-              }
-              margin="dense"
-              helperText={
-                shippingLocationsLoading
-                  ? "Loading places..."
-                  : "Choose city and postal code from India places database"
-              }
-            >
-              <MenuItem value="">Select place</MenuItem>
-              {shippingLocations.map((location: ShippingLocation) => {
-                const placeValue = `${location.city}|${location.postalCode}`;
-                return (
-                  <MenuItem key={placeValue} value={placeValue}>
-                    {location.city} - {location.postalCode}
-                  </MenuItem>
-                );
-              })}
-            </TextField>
+              options={shippingLocations.map(
+                (location: ShippingLocation) => `${location.city}|${location.postalCode}`
+              )}
+              value={selectedPlace || null}
+              onChange={(_event: any, value: string | null) => handlePlaceSelection(value || "")}
+              loading={shippingLocationsLoading}
+              renderInput={(params: any) => (
+                <TextField
+                  {...params}
+                  label="Select Place (City - PIN)"
+                  margin="dense"
+                  helperText={
+                    shippingLocationsLoading
+                      ? "Loading places..."
+                      : "Type to search city or PIN from India places database"
+                  }
+                />
+              )}
+            />
           </Box>
 
           <Box sx={{ display: "flex", gap: 2 }}>
