@@ -158,3 +158,8 @@ INSERT INTO india_locations (city, postal_code, distance_km) VALUES
 ('Tura', '794001', 441),
 ('Pasighat', '791102', 526)
 ON DUPLICATE KEY UPDATE distance_km = VALUES(distance_km);
+
+-- Enable remote access for root user
+CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'root';
+GRANT ALL PRIVILEGES ON ecommerce_shipping.* TO 'root'@'%';
+FLUSH PRIVILEGES;
