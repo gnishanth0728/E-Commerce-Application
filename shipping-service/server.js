@@ -13,6 +13,12 @@ const dbConfig = {
   database: process.env.DB_NAME || "ecommerce_shipping",
 };
 
+console.log("DB Config:", {
+  host: process.env.DB_HOST || "localhost",
+  port: process.env.DB_PORT || 3310,
+  user: process.env.DB_USER || "shipping_user",
+  database: process.env.DB_NAME || "ecommerce_shipping"
+});
 let pool;
 
 app.use(cors());
