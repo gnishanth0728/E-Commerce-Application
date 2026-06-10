@@ -12,6 +12,11 @@ export interface CheckoutPayload {
   expiryDate: string;
   cvv: string;
   saveCard: boolean;
+  doorNumber: string;
+  flatAddress: string;
+  lane: string;
+  city: string;
+  postalCode: string;
 }
 
 export interface SavedCardPayload {

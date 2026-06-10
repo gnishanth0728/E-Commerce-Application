@@ -14,6 +14,10 @@ public class CheckoutResponse {
     private String userEmail;
     private String status;
     private Integer totalItems;
+    private Double itemsTotal;
+    private Double gstAmount;
+    private Double shippingCost;
+    private Double finalAmount;
     private Double totalPrice;
     private Long checkoutAt;
     private String message;

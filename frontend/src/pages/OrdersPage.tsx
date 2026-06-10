@@ -27,8 +27,18 @@ interface Order {
   id: number;
   orderId: string;
   userEmail: string;
+  status: string;
   totalItems: number;
   totalPrice: number;
+  gstAmount: number;
+  shippingCost: number;
+  finalAmount: number;
+  doorNumber: string;
+  flatAddress: string;
+  lane: string;
+  city: string;
+  postalCode: string;
+  distanceKm: number;
   checkoutAt: number;
   items: OrderItem[];
 }
@@ -110,7 +120,23 @@ const OrdersPage: React.FC = () => {
                   </Box>
 
                   <Typography sx={{ mb: 1 }}>
-                    Items: {order.totalItems} | Total: ₹{Number(order.totalPrice).toFixed(2)}
+                    Status: {order.status} | Items: {order.totalItems}
+                  </Typography>
+
+                  <Typography sx={{ mb: 1 }}>
+                    Items Total: ₹{Number(order.totalPrice).toFixed(2)} | GST: ₹{Number(order.gstAmount).toFixed(2)} | Shipping: ₹{Number(order.shippingCost).toFixed(2)}
+                  </Typography>
+
+                  <Typography sx={{ mb: 1, fontWeight: "bold" }}>
+                    Final Bill: ₹{Number(order.finalAmount).toFixed(2)}
+                  </Typography>
+
+                  <Typography color="text.secondary" sx={{ mb: 1 }}>
+                    Shipping Address: {order.doorNumber}, {order.flatAddress}, {order.lane}, {order.city} - {order.postalCode}
+                  </Typography>
+
+                  <Typography color="text.secondary" sx={{ mb: 1 }}>
+                    Distance: {Number(order.distanceKm).toFixed(2)} km
                   </Typography>
 
                   <Divider sx={{ my: 1 }} />

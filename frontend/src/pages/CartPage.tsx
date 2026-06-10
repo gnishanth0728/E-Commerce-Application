@@ -54,6 +54,11 @@ interface PaymentForm {
   cardNumber: string;
   expiryDate: string;
   cvv: string;
+  doorNumber: string;
+  flatAddress: string;
+  lane: string;
+  city: string;
+  postalCode: string;
 }
 
 type CardType = "VISA" | "RUPAY" | "FOREX" | "UNKNOWN";
@@ -77,6 +82,11 @@ const CartPage: React.FC = () => {
     cardNumber: "",
     expiryDate: "",
     cvv: "",
+    doorNumber: "",
+    flatAddress: "",
+    lane: "",
+    city: "",
+    postalCode: "",
   });
   const navigate = useNavigate();
 
@@ -179,12 +189,19 @@ const CartPage: React.FC = () => {
         expiryDate: paymentForm.expiryDate,
         cvv: paymentForm.cvv,
         saveCard: saveCardForAccount,
+        doorNumber: paymentForm.doorNumber,
+        flatAddress: paymentForm.flatAddress,
+        lane: paymentForm.lane,
+        city: paymentForm.city,
+        postalCode: paymentForm.postalCode,
       });
       const checkoutData = response.data;
       setSuccessMessage(
-        `Order ${checkoutData.orderId} placed successfully for ₹${Number(
-          checkoutData.totalPrice || 0
-        ).toFixed(2)}`
+        `Order ${checkoutData.orderId} placed successfully. Items ₹${Number(
+          checkoutData.itemsTotal || 0
+        ).toFixed(2)}, GST ₹${Number(checkoutData.gstAmount || 0).toFixed(2)}, Shipping ₹${Number(
+          checkoutData.shippingCost || 0
+        ).toFixed(2)}, Final ₹${Number(checkoutData.finalAmount || checkoutData.totalPrice || 0).toFixed(2)}`
       );
       await loadCart();
     } catch (err: any) {
@@ -209,6 +226,11 @@ const CartPage: React.FC = () => {
       cardNumber: "",
       expiryDate: "",
       cvv: "",
+      doorNumber: "",
+      flatAddress: "",
+      lane: "",
+      city: "",
+      postalCode: "",
     });
     setSaveCardForAccount(false);
     setPaymentErrors({});
@@ -268,6 +290,26 @@ const CartPage: React.FC = () => {
 
     if (!/^\d{3}$/.test(paymentForm.cvv)) {
       errors.cvv = "CVV must be 3 digits";
+    }
+
+    if (!paymentForm.doorNumber.trim()) {
+      errors.doorNumber = "Door number is required";
+    }
+
+    if (!paymentForm.flatAddress.trim()) {
+      errors.flatAddress = "Flat or street address is required";
+    }
+
+    if (!paymentForm.lane.trim()) {
+      errors.lane = "Lane is required";
+    }
+
+    if (!paymentForm.city.trim()) {
+      errors.city = "City is required";
+    }
+
+    if (!/^\d{6}$/.test(paymentForm.postalCode)) {
+      errors.postalCode = "Postal code must be a valid 6 digit Indian PIN code";
     }
 
     setPaymentErrors(errors);
@@ -563,6 +605,83 @@ const CartPage: React.FC = () => {
               }}
             />
           </Box>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+            Shipping Address
+          </Typography>
+
+          <TextField
+            fullWidth
+            label="Door Number"
+            value={paymentForm.doorNumber}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setPaymentForm({ ...paymentForm, doorNumber: e.target.value })
+            }
+            error={Boolean(paymentErrors.doorNumber)}
+            helperText={paymentErrors.doorNumber}
+            margin="dense"
+          />
+
+          <TextField
+            fullWidth
+            label="Flat / Street Address"
+            value={paymentForm.flatAddress}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setPaymentForm({ ...paymentForm, flatAddress: e.target.value })
+            }
+            error={Boolean(paymentErrors.flatAddress)}
+            helperText={paymentErrors.flatAddress}
+            margin="dense"
+          />
+
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Lane"
+              value={paymentForm.lane}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPaymentForm({ ...paymentForm, lane: e.target.value })
+              }
+              error={Boolean(paymentErrors.lane)}
+              helperText={paymentErrors.lane}
+              margin="dense"
+            />
+
+            <TextField
+              fullWidth
+              label="City"
+              value={paymentForm.city}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPaymentForm({ ...paymentForm, city: e.target.value })
+              }
+              error={Boolean(paymentErrors.city)}
+              helperText={paymentErrors.city}
+              margin="dense"
+            />
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Postal Code"
+              value={paymentForm.postalCode}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPaymentForm({ ...paymentForm, postalCode: e.target.value.replace(/\D/g, "").slice(0, 6) })
+              }
+              error={Boolean(paymentErrors.postalCode)}
+              helperText={paymentErrors.postalCode}
+              margin="dense"
+              slotProps={{
+                htmlInput: { inputMode: "numeric", maxLength: 6 },
+              }}
+            />
+          </Box>
+
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+            Shipping distance is auto-fetched from India location database using City + Postal Code.
+          </Typography>
 
           <FormControlLabel
             sx={{ mt: 1 }}

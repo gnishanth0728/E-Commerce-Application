@@ -40,5 +40,32 @@ public class Order {
     private Double totalPrice;
 
     @Column(nullable = false)
+    private Double gstAmount;
+
+    @Column(nullable = false)
+    private Double shippingCost;
+
+    @Column(nullable = false)
+    private Double finalAmount;
+
+    @Column(nullable = false)
+    private String doorNumber;
+
+    @Column(nullable = false)
+    private String flatAddress;
+
+    @Column(nullable = false)
+    private String lane;
+
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private String postalCode;
+
+    @Column(nullable = false)
+    private Double distanceKm;
+
+    @Column(nullable = false)
     private Long checkoutAt;
 }

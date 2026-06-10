@@ -36,6 +36,12 @@ public class OrderItem {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(nullable = false)
+    private String categoryName;
+
+    @Column(nullable = false)
+    private Double gstRate;
+
     @Column
     private String imageUrl;
 

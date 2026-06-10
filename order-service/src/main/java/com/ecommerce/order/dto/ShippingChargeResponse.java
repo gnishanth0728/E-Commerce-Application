@@ -9,15 +9,13 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CheckoutRequest {
-    private String cardHolderName;
-    private String cardNumber;
-    private String expiryDate;
-    private String cvv;
-    private Boolean saveCard;
+public class ShippingChargeResponse {
+    private String status;
     private String doorNumber;
     private String flatAddress;
     private String lane;
     private String city;
     private String postalCode;
+    private Double distanceKm;
+    private Double shippingCost;
 }
