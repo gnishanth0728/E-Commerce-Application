@@ -18,6 +18,7 @@ import {
   DialogActions,
   Checkbox,
   FormControlLabel,
+  MenuItem,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -29,6 +30,7 @@ import {
   clearCart,
 } from "../api/cartApi";
 import { checkoutCart, getSavedCard } from "../api/orderApi";
+import { getShippingLocations } from "../api/shippingApi";
 import { useNavigate } from "react-router-dom";
 
 interface CartItem {
@@ -69,6 +71,11 @@ interface SavedCardData {
   expiryDate: string;
 }
 
+interface ShippingLocation {
+  city: string;
+  postalCode: string;
+}
+
 const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,6 +84,9 @@ const CartPage: React.FC = () => {
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
   const [paymentErrors, setPaymentErrors] = useState<Partial<PaymentForm>>({});
   const [saveCardForAccount, setSaveCardForAccount] = useState(false);
+  const [shippingLocations, setShippingLocations] = useState<ShippingLocation[]>([]);
+  const [shippingLocationsLoading, setShippingLocationsLoading] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState("");
   const [paymentForm, setPaymentForm] = useState<PaymentForm>({
     cardHolderName: "",
     cardNumber: "",
@@ -241,7 +251,20 @@ const CartPage: React.FC = () => {
     setSuccessMessage(null);
     resetPaymentForm();
     void loadSavedCardFromDb();
+    void loadShippingLocations();
     setCheckoutDialogOpen(true);
+  };
+
+  const loadShippingLocations = async () => {
+    try {
+      setShippingLocationsLoading(true);
+      const response = await getShippingLocations();
+      setShippingLocations(response.data || []);
+    } catch {
+      setShippingLocations([]);
+    } finally {
+      setShippingLocationsLoading(false);
+    }
   };
 
   const loadSavedCardFromDb = async () => {
@@ -268,6 +291,17 @@ const CartPage: React.FC = () => {
   const handleCloseCheckoutDialog = () => {
     setCheckoutDialogOpen(false);
     setPaymentErrors({});
+  };
+
+  const handlePlaceSelection = (value: string) => {
+    setSelectedPlace(value);
+    if (!value) {
+      setPaymentForm({ ...paymentForm, city: "", postalCode: "" });
+      return;
+    }
+
+    const [city, postalCode] = value.split("|");
+    setPaymentForm({ ...paymentForm, city, postalCode });
   };
 
   const validatePaymentForm = () => {
@@ -651,6 +685,35 @@ const CartPage: React.FC = () => {
 
             <TextField
               fullWidth
+              select
+              label="Select Place (City - PIN)"
+              value={selectedPlace}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handlePlaceSelection(e.target.value)
+              }
+              margin="dense"
+              helperText={
+                shippingLocationsLoading
+                  ? "Loading places..."
+                  : "Choose city and postal code from India places database"
+              }
+            >
+              <MenuItem value="">Select place</MenuItem>
+              {shippingLocations.map((location: ShippingLocation) => {
+                const placeValue = `${location.city}|${location.postalCode}`;
+                return (
+                  <MenuItem key={placeValue} value={placeValue}>
+                    {location.city} - {location.postalCode}
+                  </MenuItem>
+                );
+              })}
+            </TextField>
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 2 }}>
+
+            <TextField
+              fullWidth
               label="City"
               value={paymentForm.city}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -660,9 +723,7 @@ const CartPage: React.FC = () => {
               helperText={paymentErrors.city}
               margin="dense"
             />
-          </Box>
 
-          <Box sx={{ display: "flex", gap: 2 }}>
             <TextField
               fullWidth
               label="Postal Code"
