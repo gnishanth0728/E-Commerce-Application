@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 8085;
 const dbConfig = {
   host: process.env.DB_HOST || "localhost",
   port: Number(process.env.DB_PORT || 3310),
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "root",
+  user: process.env.DB_USER || "shipping_user",
+  password: process.env.DB_PASSWORD || "shipping_password",
   database: process.env.DB_NAME || "ecommerce_shipping",
 };
 

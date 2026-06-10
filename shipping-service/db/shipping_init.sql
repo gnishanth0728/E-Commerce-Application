@@ -159,7 +159,7 @@ INSERT INTO india_locations (city, postal_code, distance_km) VALUES
 ('Pasighat', '791102', 526)
 ON DUPLICATE KEY UPDATE distance_km = VALUES(distance_km);
 
--- Enable remote access for root user
-CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'root';
-GRANT ALL PRIVILEGES ON ecommerce_shipping.* TO 'root'@'%';
+-- Create dedicated application user for shipping-service
+CREATE USER IF NOT EXISTS 'shipping_user'@'%' IDENTIFIED BY 'shipping_password';
+GRANT ALL PRIVILEGES ON ecommerce_shipping.* TO 'shipping_user'@'%';
 FLUSH PRIVILEGES;

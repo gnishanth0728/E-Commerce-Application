@@ -17,21 +17,5 @@ services:
       timeout: 20s
       retries: 10
 
-  # shipping-service:
-  #   build: .
-  #   container_name: shipping-service
-  #   depends_on:
-  #     shipping-db:
-  #       condition: service_healthy
-  #   ports:
-  #     - "8085:8085"
-  #   environment:
-  #     PORT: 8085
-  #     DB_HOST: shipping-db
-  #     DB_PORT: 3306
-  #     DB_USER: root
-  #     DB_PASSWORD: root
-  #     DB_NAME: ecommerce_shipping
-
 volumes:
   shipping-db-data:
