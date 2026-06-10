@@ -1,6 +1,6 @@
-package com.ecommerce.cart.repository;
+package com.ecommerce.order.repository;
 
-import com.ecommerce.cart.entity.Order;
+import com.ecommerce.order.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

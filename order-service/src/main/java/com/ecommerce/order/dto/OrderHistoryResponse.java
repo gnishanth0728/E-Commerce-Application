@@ -1,6 +1,6 @@
-package com.ecommerce.cart.dto;
+package com.ecommerce.order.dto;
 
-import com.ecommerce.cart.entity.Order;
+import com.ecommerce.order.entity.Order;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

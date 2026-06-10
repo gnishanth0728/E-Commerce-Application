@@ -29,7 +29,5 @@ export const updateCartItem = (productId: number, quantity: number) =>
 export const removeFromCart = (productId: number) =>
   cartApi.delete(`remove/${productId}`);
 export const clearCart = () => cartApi.delete("clear");
-export const checkoutCart = () => cartApi.post("checkout");
-export const getOrderHistory = () => cartApi.get("orders");
 
 export default cartApi;

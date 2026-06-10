@@ -1,4 +1,4 @@
-package com.ecommerce.cart.entity;
+package com.ecommerce.order.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -26,6 +26,9 @@ public class Order {
 
     @Column(nullable = false)
     private String userEmail;
+
+    @Column(nullable = false)
+    private String status;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OrderItem> items = new ArrayList<>();

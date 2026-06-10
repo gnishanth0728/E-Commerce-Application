@@ -11,7 +11,7 @@ import {
   Button,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { getOrderHistory } from "../api/cartApi";
+import { getOrderHistory } from "../api/orderApi";
 
 interface OrderItem {
   id: number;

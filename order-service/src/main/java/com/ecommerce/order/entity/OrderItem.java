@@ -1,4 +1,4 @@
-package com.ecommerce.cart.entity;
+package com.ecommerce.order.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -20,7 +20,7 @@ public class OrderItem {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_ref", nullable = false)
     @JsonIgnore
     private Order order;
 

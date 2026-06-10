@@ -1,4 +1,4 @@
-package com.ecommerce.cart.dto;
+package com.ecommerce.order.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +12,7 @@ import lombok.Setter;
 public class CheckoutResponse {
     private String orderId;
     private String userEmail;
+    private String status;
     private Integer totalItems;
     private Double totalPrice;
     private Long checkoutAt;

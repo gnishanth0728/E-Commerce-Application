@@ -16,6 +16,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -25,8 +27,8 @@ import {
   removeFromCart,
   updateCartItem,
   clearCart,
-  checkoutCart,
 } from "../api/cartApi";
+import { checkoutCart, getSavedCard } from "../api/orderApi";
 import { useNavigate } from "react-router-dom";
 
 interface CartItem {
@@ -54,6 +56,14 @@ interface PaymentForm {
   cvv: string;
 }
 
+type CardType = "VISA" | "RUPAY" | "FOREX" | "UNKNOWN";
+
+interface SavedCardData {
+  cardHolderName: string;
+  cardNumber: string;
+  expiryDate: string;
+}
+
 const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,6 +71,7 @@ const CartPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
   const [paymentErrors, setPaymentErrors] = useState<Partial<PaymentForm>>({});
+  const [saveCardForAccount, setSaveCardForAccount] = useState(false);
   const [paymentForm, setPaymentForm] = useState<PaymentForm>({
     cardHolderName: "",
     cardNumber: "",
@@ -68,6 +79,32 @@ const CartPage: React.FC = () => {
     cvv: "",
   });
   const navigate = useNavigate();
+
+  const normalizeCardNumber = (value: string): string => {
+    const digitsOnly = value.replace(/\D/g, "").slice(0, 16);
+    return digitsOnly.replace(/(.{4})/g, "$1 ").trim();
+  };
+
+  const detectCardType = (cardNumber: string): CardType => {
+    const digitsOnly = cardNumber.replace(/\D/g, "");
+    if (digitsOnly.length < 6) {
+      return "UNKNOWN";
+    }
+
+    const bin = digitsOnly.slice(0, 6);
+
+    if (/^4\d{5}$/.test(bin)) {
+      return "VISA";
+    }
+
+    if (/^(60\d{4}|65\d{4}|81\d{4}|82\d{4}|508\d{3}|353\d{3}|356\d{3})$/.test(bin)) {
+      return "RUPAY";
+    }
+
+    return "FOREX";
+  };
+
+  const currentCardType: CardType = detectCardType(paymentForm.cardNumber);
 
   useEffect(() => {
     loadCart();
@@ -136,7 +173,13 @@ const CartPage: React.FC = () => {
     try {
       setError(null);
       setCheckoutDialogOpen(false);
-      const response = await checkoutCart();
+      const response = await checkoutCart({
+        cardHolderName: paymentForm.cardHolderName,
+        cardNumber: paymentForm.cardNumber,
+        expiryDate: paymentForm.expiryDate,
+        cvv: paymentForm.cvv,
+        saveCard: saveCardForAccount,
+      });
       const checkoutData = response.data;
       setSuccessMessage(
         `Order ${checkoutData.orderId} placed successfully for ₹${Number(
@@ -167,13 +210,37 @@ const CartPage: React.FC = () => {
       expiryDate: "",
       cvv: "",
     });
+    setSaveCardForAccount(false);
     setPaymentErrors({});
   };
 
   const handleOpenCheckoutDialog = () => {
     setError(null);
     setSuccessMessage(null);
+    resetPaymentForm();
+    void loadSavedCardFromDb();
     setCheckoutDialogOpen(true);
+  };
+
+  const loadSavedCardFromDb = async () => {
+    try {
+      const response = await getSavedCard();
+      const savedCard: SavedCardData | null = response.data;
+
+      if (!savedCard) {
+        return;
+      }
+
+      setPaymentForm((previous: PaymentForm) => ({
+        ...previous,
+        cardHolderName: savedCard.cardHolderName,
+        cardNumber: savedCard.cardNumber,
+        expiryDate: savedCard.expiryDate,
+      }));
+      setSaveCardForAccount(true);
+    } catch {
+      // Keep checkout usable even if saved card fetch fails.
+    }
   };
 
   const handleCloseCheckoutDialog = () => {
@@ -191,6 +258,8 @@ const CartPage: React.FC = () => {
     const cleanedCardNumber = paymentForm.cardNumber.replace(/\s/g, "");
     if (!/^\d{16}$/.test(cleanedCardNumber)) {
       errors.cardNumber = "Card number must be 16 digits";
+    } else if (detectCardType(cleanedCardNumber) === "UNKNOWN") {
+      errors.cardNumber = "Enter at least the first 6 digits to detect card type";
     }
 
     if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(paymentForm.expiryDate)) {
@@ -448,12 +517,20 @@ const CartPage: React.FC = () => {
             label="Card Number"
             value={paymentForm.cardNumber}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPaymentForm({ ...paymentForm, cardNumber: e.target.value })
+              setPaymentForm({
+                ...paymentForm,
+                cardNumber: normalizeCardNumber(e.target.value),
+              })
             }
             error={Boolean(paymentErrors.cardNumber)}
             helperText={paymentErrors.cardNumber || "Enter 16-digit card number"}
             margin="dense"
+            inputProps={{ inputMode: "numeric", maxLength: 19 }}
           />
+
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+            Card type (first 6 digits): {currentCardType === "UNKNOWN" ? "Enter first 6 digits" : currentCardType}
+          </Typography>
 
           <Box sx={{ display: "flex", gap: 2 }}>
             <TextField
@@ -474,13 +551,31 @@ const CartPage: React.FC = () => {
               type="password"
               value={paymentForm.cvv}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPaymentForm({ ...paymentForm, cvv: e.target.value })
+                setPaymentForm({ ...paymentForm, cvv: e.target.value.replace(/\D/g, "").slice(0, 3) })
               }
               error={Boolean(paymentErrors.cvv)}
               helperText={paymentErrors.cvv}
               margin="dense"
+              inputProps={{ inputMode: "numeric", maxLength: 3 }}
             />
           </Box>
+
+          <FormControlLabel
+            sx={{ mt: 1 }}
+            control={
+              <Checkbox
+                checked={saveCardForAccount}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSaveCardForAccount(e.target.checked)
+                }
+              />
+            }
+            label="Save this card in my account"
+          />
+
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+            CVV is never saved.
+          </Typography>
 
           <Typography sx={{ mt: 2, fontWeight: "bold" }}>
             Total Payable: ₹{calculateTotalPrice().toFixed(2)}
