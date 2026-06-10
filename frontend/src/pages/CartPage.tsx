@@ -525,7 +525,9 @@ const CartPage: React.FC = () => {
             error={Boolean(paymentErrors.cardNumber)}
             helperText={paymentErrors.cardNumber || "Enter 16-digit card number"}
             margin="dense"
-            inputProps={{ inputMode: "numeric", maxLength: 19 }}
+            slotProps={{
+              htmlInput: { inputMode: "numeric", maxLength: 19 },
+            }}
           />
 
           <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
@@ -556,7 +558,9 @@ const CartPage: React.FC = () => {
               error={Boolean(paymentErrors.cvv)}
               helperText={paymentErrors.cvv}
               margin="dense"
-              inputProps={{ inputMode: "numeric", maxLength: 3 }}
+              slotProps={{
+                htmlInput: { inputMode: "numeric", maxLength: 3 },
+              }}
             />
           </Box>
 
