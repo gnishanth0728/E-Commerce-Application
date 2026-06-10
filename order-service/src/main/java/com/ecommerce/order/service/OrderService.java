@@ -169,10 +169,10 @@ public class OrderService {
         payload.put("expiryDate", request.getExpiryDate());
         payload.put("cvv", request.getCvv());
 
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+        HttpEntity<Map<String, Object>> paymentRequest = new HttpEntity<>(payload, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(paymentServiceUrl, request, Map.class);
+            ResponseEntity<Map> response = restTemplate.postForEntity(paymentServiceUrl, paymentRequest, Map.class);
             Object status = response.getBody() != null ? response.getBody().get("status") : null;
 
             if (!response.getStatusCode().is2xxSuccessful() || status == null || !"SUCCESS".equalsIgnoreCase(status.toString())) {
