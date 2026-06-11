@@ -150,13 +150,27 @@ export default function Home() {
     }
 
     try {
-      const isInWishlist = wishlistItems.has(product.id);
+      const resolvedProductId = Number(product?.id ?? product?.productId);
+      const resolvedProductName = product?.name ?? product?.productName ?? "Product";
+      const resolvedProductPrice = Number(product?.price ?? product?.productPrice ?? 0);
+      const resolvedImageUrl = product?.imageUrl ?? product?.productImageUrl;
+
+      if (!resolvedProductId || Number.isNaN(resolvedProductId)) {
+        setSnackbar({
+          open: true,
+          message: "Unable to add item to wishlist",
+          severity: "error"
+        });
+        return;
+      }
+
+      const isInWishlist = wishlistItems.has(resolvedProductId);
       
       if (isInWishlist) {
-        await removeFromWishlist(product.id);
+        await removeFromWishlist(resolvedProductId);
         setWishlistItems((prev: Set<number>) => {
           const newSet = new Set(prev);
-          newSet.delete(product.id);
+          newSet.delete(resolvedProductId);
           return newSet;
         });
         setSnackbar({
@@ -166,12 +180,12 @@ export default function Home() {
         });
       } else {
         await addToWishlist({
-          productId: product.id,
-          productName: product.name,
-          productPrice: product.price,
-          productImageUrl: product.imageUrl
+          productId: resolvedProductId,
+          productName: resolvedProductName,
+          productPrice: resolvedProductPrice,
+          productImageUrl: resolvedImageUrl
         });
-        setWishlistItems((prev: Set<number>) => new Set(prev).add(product.id));
+        setWishlistItems((prev: Set<number>) => new Set(prev).add(resolvedProductId));
         setSnackbar({
           open: true,
           message: "Added to wishlist",
