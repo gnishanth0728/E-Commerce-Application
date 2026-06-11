@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 import {
   Alert,
@@ -183,7 +182,7 @@ export default function ProfilePage() {
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         {profile.email}
                       </Typography>
-                      <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap">
+                      <Stack direction="row" spacing={1} sx={{ justifyContent: "center", flexWrap: "wrap" }}>
                         <Chip label={profile.role} color="primary" />
                         <Chip label="Verified Account" variant="outlined" />
                       </Stack>
