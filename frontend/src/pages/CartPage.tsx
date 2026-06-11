@@ -5,12 +5,12 @@ import {
   Button,
   Card,
   CardMedia,
+  Chip,
   Container,
   Divider,
   Grid,
   IconButton,
   Paper,
-  TextField,
   Typography,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -140,63 +140,94 @@ const CartPage: React.FC = () => {
                 sx={{
                   mb: 2,
                   display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
                   borderRadius: 3,
-                  border: "1px solid #e5eefc",
-                  boxShadow: "0 12px 24px rgba(15, 23, 42, 0.06)",
+                  border: "1px solid #dbe7ff",
+                  boxShadow: "0 12px 28px rgba(15, 23, 42, 0.08)",
+                  overflow: "hidden",
+                  transition: "all 0.25s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 18px 34px rgba(15, 23, 42, 0.12)",
+                  },
                 }}
               >
                 {item.imageUrl && (
                   <CardMedia
                     component="img"
-                    sx={{ width: 150, height: 150, objectFit: "cover" }}
+                    sx={{
+                      width: { xs: "100%", sm: 180 },
+                      height: { xs: 180, sm: "auto" },
+                      objectFit: "cover",
+                    }}
                     image={item.imageUrl}
                     alt={item.productName}
                   />
                 )}
 
-                <Box sx={{ flex: 1, p: 2 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>{item.productName}</Typography>
-                  <Typography variant="body2" sx={{ color: "#2874f0", my: 1, fontWeight: 700 }}>
+                <Box sx={{ flex: 1, p: 2.25 }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1, mb: 1 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a" }}>
+                      {item.productName}
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={`Qty ${item.quantity}`}
+                      sx={{ bgcolor: "#e8f0ff", color: "#1d4ed8", fontWeight: 700 }}
+                    />
+                  </Box>
+
+                  <Typography variant="body2" sx={{ color: "#334155", mb: 1.5, fontWeight: 600 }}>
                     Unit Price: ₹{item.price.toFixed(2)}
                   </Typography>
 
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, my: 2 }}>
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 1,
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 999,
+                      border: "1px solid #dbe7ff",
+                      bgcolor: "#f8fbff",
+                      mb: 1.5,
+                    }}
+                  >
                     <IconButton
                       size="small"
                       onClick={() => void handleUpdateQuantity(item.productId, item.quantity - 1)}
+                      sx={{ border: "1px solid #d1d5db" }}
                     >
                       <RemoveIcon />
                     </IconButton>
-                    <TextField
-                      type="number"
-                      size="small"
-                      value={item.quantity}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        void handleUpdateQuantity(item.productId, parseInt(e.target.value, 10) || 1)
-                      }
-                      sx={{ width: 72 }}
-                    />
+                    <Typography sx={{ minWidth: 24, textAlign: "center", fontWeight: 800 }}>
+                      {item.quantity}
+                    </Typography>
                     <IconButton
                       size="small"
                       onClick={() => void handleUpdateQuantity(item.productId, item.quantity + 1)}
+                      sx={{ border: "1px solid #d1d5db" }}
                     >
                       <AddIcon />
                     </IconButton>
                   </Box>
 
-                  <Typography variant="body1" sx={{ fontWeight: 800, color: "#fb641b" }}>
-                    Subtotal: ₹{(item.price * item.quantity).toFixed(2)}
-                  </Typography>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 0.5 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 800, color: "#ea580c" }}>
+                      Subtotal: ₹{(item.price * item.quantity).toFixed(2)}
+                    </Typography>
 
-                  <Button
-                    variant="text"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    sx={{ mt: 1, px: 0 }}
-                    onClick={() => void handleRemoveItem(item.productId)}
-                  >
-                    Remove
-                  </Button>
+                    <Button
+                      variant="text"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      sx={{ px: 0, fontWeight: 700 }}
+                      onClick={() => void handleRemoveItem(item.productId)}
+                    >
+                      Remove
+                    </Button>
+                  </Box>
                 </Box>
               </Card>
             ))}
