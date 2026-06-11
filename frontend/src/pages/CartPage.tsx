@@ -385,9 +385,23 @@ const CartPage: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" sx={{ mb: 3, fontWeight: "bold" }}>
-        🛒 Shopping Cart
-      </Typography>
+      <Box
+        sx={{
+          mb: 3,
+          p: 3,
+          borderRadius: 4,
+          background: "linear-gradient(135deg, #1e3a8a 0%, #2874f0 45%, #60a5fa 100%)",
+          color: "white",
+          boxShadow: "0 18px 40px rgba(40, 116, 240, 0.25)",
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+          Shopping Cart
+        </Typography>
+        <Typography sx={{ opacity: 0.92 }}>
+          Review items, update quantity, and checkout with final bill breakdown.
+        </Typography>
+      </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
@@ -396,7 +410,16 @@ const CartPage: React.FC = () => {
           {/* Cart Items */}
           <Grid size={{ xs: 12, md: 8 }}>
             {cart.items.map((item: CartItem) => (
-              <Card key={item.id} sx={{ mb: 2, display: "flex" }}>
+              <Card
+                key={item.id}
+                sx={{
+                  mb: 2,
+                  display: "flex",
+                  borderRadius: 3,
+                  border: "1px solid #e5eefc",
+                  boxShadow: "0 12px 24px rgba(15, 23, 42, 0.06)",
+                }}
+              >
                 {item.imageUrl && (
                   <CardMedia
                     component="img"
@@ -409,8 +432,8 @@ const CartPage: React.FC = () => {
                   <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                     {item.productName}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "#2874f0", my: 1 }}>
-                    Price: ₹{item.price}
+                  <Typography variant="body2" sx={{ color: "#2874f0", my: 1, fontWeight: 700 }}>
+                    Unit Price: ₹{item.price.toFixed(2)}
                   </Typography>
 
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1, my: 2 }}>
@@ -462,12 +485,21 @@ const CartPage: React.FC = () => {
 
           {/* Order Summary */}
           <Grid size={{ xs: 12, md: 4 }}>
-            <Paper sx={{ p: 3, position: "sticky", top: 20 }}>
-              <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+            <Paper
+              sx={{
+                p: 3,
+                position: "sticky",
+                top: 20,
+                borderRadius: 3,
+                border: "1px solid #e5eefc",
+                boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
                 Order Summary
               </Typography>
 
-              <Box sx={{ mb: 2 }}>
+              <Box sx={{ mb: 2, p: 2, borderRadius: 2, bgcolor: "#f8fbff" }}>
                 <Box
                   sx={{
                     display: "flex",
@@ -475,8 +507,8 @@ const CartPage: React.FC = () => {
                     mb: 1,
                   }}
                 >
-                  <Typography>Item Bill ({calculateTotalItems()})</Typography>
-                  <Typography>₹{calculateTotalPrice().toFixed(2)}</Typography>
+                  <Typography sx={{ fontWeight: 700 }}>Item Bill ({calculateTotalItems()})</Typography>
+                  <Typography sx={{ fontWeight: 800 }}>₹{calculateTotalPrice().toFixed(2)}</Typography>
                 </Box>
 
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
@@ -605,9 +637,20 @@ const CartPage: React.FC = () => {
             </Box>
           ) : (
             <>
-              <Typography sx={{ fontWeight: "bold", mb: 1 }}>
-                Cart Summary
+              <Typography sx={{ fontWeight: 800, mb: 1 }}>
+                Order Summary
               </Typography>
+
+              <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "#f8fbff", mb: 1.5 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                  <Typography sx={{ fontWeight: 700 }}>Item Bill ({calculateTotalItems()})</Typography>
+                  <Typography sx={{ fontWeight: 800 }}>₹{calculateTotalPrice().toFixed(2)}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body2">GST + Shipping</Typography>
+                  <Typography variant="body2" color="text.secondary">Calculated at checkout</Typography>
+                </Box>
+              </Box>
 
               {cart?.items?.map((item: CartItem) => (
                 <Box

@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .and()
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/orders/**").authenticated()
+                    .requestMatchers("/api/wishlist/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

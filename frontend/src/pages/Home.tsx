@@ -36,7 +36,7 @@ import {
 } from "react";
 import productApi from "../api/productApi";
 import { addToCart, getCart } from "../api/cartApi";
-import { addToWishlist, removeFromWishlist } from "../api/wishlistApi";
+import { addToWishlist, getWishlist, removeFromWishlist } from "../api/wishlistApi";
 import { Link, useNavigate } from "react-router-dom";
 
 
@@ -78,6 +78,21 @@ export default function Home() {
       setCartItemCount(totalItems);
     } catch (error) {
       console.error("Error loading cart count:", error);
+    }
+  };
+
+  const loadWishlistIds = async () => {
+    if (!token) {
+      setWishlistItems(new Set());
+      return;
+    }
+
+    try {
+      const response = await getWishlist();
+      const ids = new Set<number>((response.data || []).map((item: any) => item.productId));
+      setWishlistItems(ids);
+    } catch {
+      setWishlistItems(new Set());
     }
   };
 
@@ -139,7 +154,7 @@ export default function Home() {
       
       if (isInWishlist) {
         await removeFromWishlist(product.id);
-        setWishlistItems((prev) => {
+        setWishlistItems((prev: Set<number>) => {
           const newSet = new Set(prev);
           newSet.delete(product.id);
           return newSet;
@@ -156,7 +171,7 @@ export default function Home() {
           productPrice: product.price,
           productImageUrl: product.imageUrl
         });
-        setWishlistItems((prev) => new Set(prev).add(product.id));
+        setWishlistItems((prev: Set<number>) => new Set(prev).add(product.id));
         setSnackbar({
           open: true,
           message: "Added to wishlist",
@@ -233,6 +248,7 @@ useEffect(() => {
   }
 
   loadCartCount();
+  void loadWishlistIds();
 
 }, [token]);
 
@@ -242,7 +258,7 @@ useEffect(() => {
 
   const bannerInterval = setInterval(() => {
     setCurrentBannerIndex(
-      (prev) => (prev + 1) % banners.length
+      (prev: number) => (prev + 1) % banners.length
     );
   }, 5000);
 
@@ -651,7 +667,7 @@ const totalPages = Math.ceil(
               size="small"
               onClick={() =>
                 setCurrentBannerIndex(
-                  (prev) =>
+                  (prev: number) =>
                     (prev - 1 + banners.length) %
                     banners.length
                 )
@@ -687,7 +703,7 @@ const totalPages = Math.ceil(
               size="small"
               onClick={() =>
                 setCurrentBannerIndex(
-                  (prev) => (prev + 1) % banners.length
+                  (prev: number) => (prev + 1) % banners.length
                 )
               }
               sx={{ color: "white" }}

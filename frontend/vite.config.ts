@@ -19,6 +19,18 @@ export default defineConfig({
         target: 'http://localhost:8082',
         changeOrigin: true,
       },
+      '/api/orders': {
+        target: 'http://localhost:8083',
+        changeOrigin: true,
+      },
+      '/api/wishlist': {
+        target: 'http://localhost:8083',
+        changeOrigin: true,
+      },
+      '/api/shipping': {
+        target: 'http://localhost:8085',
+        changeOrigin: true,
+      },
     },
   },
 })
