@@ -40,9 +40,11 @@ const CartPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadCart = async () => {
+  const loadCart = async (showLoader = false) => {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
       const response = await getCart();
       setCart(response.data);
       setError(null);
@@ -54,18 +56,20 @@ const CartPage: React.FC = () => {
         setError("Failed to load cart");
       }
     } finally {
-      setLoading(false);
+      if (showLoader) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    void loadCart();
+    void loadCart(true);
   }, []);
 
   const handleRemoveItem = async (productId: number) => {
     try {
       await removeFromCart(productId);
-      await loadCart();
+      await loadCart(false);
     } catch {
       setError("Failed to remove item from cart");
     }
@@ -79,7 +83,7 @@ const CartPage: React.FC = () => {
 
     try {
       await updateCartItem(productId, quantity);
-      await loadCart();
+      await loadCart(false);
     } catch {
       setError("Failed to update quantity");
     }
@@ -88,7 +92,7 @@ const CartPage: React.FC = () => {
   const handleClearCart = async () => {
     try {
       await clearCart();
-      await loadCart();
+      await loadCart(false);
     } catch {
       setError("Failed to clear cart");
     }
@@ -97,7 +101,7 @@ const CartPage: React.FC = () => {
   const totalItems = cart?.items?.reduce((sum: number, item: CartItem) => sum + item.quantity, 0) || 0;
   const itemBill = cart?.items?.reduce((sum: number, item: CartItem) => sum + item.price * item.quantity, 0) || 0;
 
-  if (loading) {
+  if (loading && !cart) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Typography variant="h5">Loading cart...</Typography>
