@@ -76,11 +76,19 @@ interface ShippingLocation {
   postalCode: string;
 }
 
+interface CheckoutSummary {
+  orderId: string;
+  itemsTotal: number;
+  gstAmount: number;
+  shippingCost: number;
+  finalAmount: number;
+}
+
 const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [checkoutSummary, setCheckoutSummary] = useState<CheckoutSummary | null>(null);
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
   const [paymentErrors, setPaymentErrors] = useState<Partial<PaymentForm>>({});
   const [saveCardForAccount, setSaveCardForAccount] = useState(false);
@@ -192,7 +200,6 @@ const CartPage: React.FC = () => {
   const handleCheckout = async () => {
     try {
       setError(null);
-      setCheckoutDialogOpen(false);
       const response = await checkoutCart({
         cardHolderName: paymentForm.cardHolderName,
         cardNumber: paymentForm.cardNumber,
@@ -206,16 +213,16 @@ const CartPage: React.FC = () => {
         postalCode: paymentForm.postalCode,
       });
       const checkoutData = response.data;
-      setSuccessMessage(
-        `Order ${checkoutData.orderId} placed successfully. Items ₹${Number(
-          checkoutData.itemsTotal || 0
-        ).toFixed(2)}, GST ₹${Number(checkoutData.gstAmount || 0).toFixed(2)}, Shipping ₹${Number(
-          checkoutData.shippingCost || 0
-        ).toFixed(2)}, Final ₹${Number(checkoutData.finalAmount || checkoutData.totalPrice || 0).toFixed(2)}`
-      );
+      setCheckoutSummary({
+        orderId: checkoutData.orderId,
+        itemsTotal: Number(checkoutData.itemsTotal || 0),
+        gstAmount: Number(checkoutData.gstAmount || 0),
+        shippingCost: Number(checkoutData.shippingCost || 0),
+        finalAmount: Number(checkoutData.finalAmount || checkoutData.totalPrice || 0),
+      });
       await loadCart();
     } catch (err: any) {
-      setSuccessMessage(null);
+      setCheckoutSummary(null);
       const responseData = err.response?.data;
       const backendMessage =
         responseData?.message ||
@@ -248,7 +255,7 @@ const CartPage: React.FC = () => {
 
   const handleOpenCheckoutDialog = () => {
     setError(null);
-    setSuccessMessage(null);
+    setCheckoutSummary(null);
     resetPaymentForm();
     void loadSavedCardFromDb();
     void loadShippingLocations();
@@ -291,6 +298,7 @@ const CartPage: React.FC = () => {
   const handleCloseCheckoutDialog = () => {
     setCheckoutDialogOpen(false);
     setPaymentErrors({});
+    setCheckoutSummary(null);
   };
 
   const handlePlaceSelection = (value: string) => {
@@ -382,7 +390,6 @@ const CartPage: React.FC = () => {
       </Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
 
       {cart && cart.items && cart.items.length > 0 ? (
         <Grid container spacing={3}>
@@ -468,13 +475,13 @@ const CartPage: React.FC = () => {
                     mb: 1,
                   }}
                 >
-                  <Typography>Items ({calculateTotalItems()})</Typography>
+                  <Typography>Item Bill ({calculateTotalItems()})</Typography>
                   <Typography>₹{calculateTotalPrice().toFixed(2)}</Typography>
                 </Box>
 
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography>Shipping</Typography>
-                  <Typography sx={{ color: "green" }}>FREE</Typography>
+                  <Typography>GST + Shipping</Typography>
+                  <Typography color="text.secondary">Calculated at checkout</Typography>
                 </Box>
               </Box>
 
@@ -488,7 +495,7 @@ const CartPage: React.FC = () => {
                   variant="h6"
                   sx={{ fontWeight: "bold", color: "#fb641b" }}
                 >
-                  ₹{calculateTotalPrice().toFixed(2)}
+                  ₹{calculateTotalPrice().toFixed(2)}+
                 </Typography>
               </Box>
 
@@ -548,227 +555,287 @@ const CartPage: React.FC = () => {
       >
         <DialogTitle>Checkout Details</DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontWeight: "bold", mb: 1 }}>
-            Cart Summary
-          </Typography>
-
-          {cart?.items?.map((item: CartItem) => (
+          {checkoutSummary ? (
             <Box
-              key={item.id}
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                mb: 0.5,
+                p: 2.5,
+                borderRadius: 3,
+                background: "linear-gradient(135deg, #e8f5e9 0%, #f4fbf6 100%)",
+                border: "1px solid #c8e6c9",
               }}
             >
-              <Typography variant="body2">
-                {item.productName} x {item.quantity}
+              <Alert severity="success" sx={{ mb: 2 }}>
+                Payment successful. Your order has been placed.
+              </Alert>
+
+              <Typography sx={{ fontSize: 18, fontWeight: 800, mb: 1 }}>
+                Order {checkoutSummary.orderId} confirmed
               </Typography>
-              <Typography variant="body2">
-                ₹{(item.price * item.quantity).toFixed(2)}
-              </Typography>
+
+              <Box sx={{ display: "grid", gap: 1, mb: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body2" color="text.secondary">Items Total</Typography>
+                  <Typography variant="body2">₹{checkoutSummary.itemsTotal.toFixed(2)}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body2" color="text.secondary">GST</Typography>
+                  <Typography variant="body2">₹{checkoutSummary.gstAmount.toFixed(2)}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body2" color="text.secondary">Shipping</Typography>
+                  <Typography variant="body2">₹{checkoutSummary.shippingCost.toFixed(2)}</Typography>
+                </Box>
+                <Divider />
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography sx={{ fontWeight: 700 }}>Final Bill</Typography>
+                  <Typography sx={{ fontWeight: 800, color: "#1b5e20" }}>
+                    ₹{checkoutSummary.finalAmount.toFixed(2)}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                <Box sx={{ px: 1.5, py: 0.75, borderRadius: 999, bgcolor: "#d9f0de", color: "#1b5e20", fontWeight: 700 }}>
+                  Payment Status: SUCCESS
+                </Box>
+                <Box sx={{ px: 1.5, py: 0.75, borderRadius: 999, bgcolor: "#dbeafe", color: "#0f4c81", fontWeight: 700 }}>
+                  Order Status: CONFIRMED
+                </Box>
+              </Box>
             </Box>
-          ))}
+          ) : (
+            <>
+              <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+                Cart Summary
+              </Typography>
 
-          <Divider sx={{ my: 2 }} />
+              {cart?.items?.map((item: CartItem) => (
+                <Box
+                  key={item.id}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 0.5,
+                  }}
+                >
+                  <Typography variant="body2">
+                    {item.productName} x {item.quantity}
+                  </Typography>
+                  <Typography variant="body2">
+                    ₹{(item.price * item.quantity).toFixed(2)}
+                  </Typography>
+                </Box>
+              ))}
 
-          <Typography sx={{ fontWeight: "bold", mb: 1 }}>
-            Payment Details
-          </Typography>
+              <Divider sx={{ my: 2 }} />
 
-          <TextField
-            fullWidth
-            label="Card Holder Name"
-            value={paymentForm.cardHolderName}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPaymentForm({ ...paymentForm, cardHolderName: e.target.value })
-            }
-            error={Boolean(paymentErrors.cardHolderName)}
-            helperText={paymentErrors.cardHolderName}
-            margin="dense"
-          />
+              <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+                Payment Details
+              </Typography>
 
-          <TextField
-            fullWidth
-            label="Card Number"
-            value={paymentForm.cardNumber}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPaymentForm({
-                ...paymentForm,
-                cardNumber: normalizeCardNumber(e.target.value),
-              })
-            }
-            error={Boolean(paymentErrors.cardNumber)}
-            helperText={paymentErrors.cardNumber || "Enter 16-digit card number"}
-            margin="dense"
-            slotProps={{
-              htmlInput: { inputMode: "numeric", maxLength: 19 },
-            }}
-          />
-
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-            Card type (first 6 digits): {currentCardType === "UNKNOWN" ? "Enter first 6 digits" : currentCardType}
-          </Typography>
-
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <TextField
-              fullWidth
-              label="Expiry (MM/YY)"
-              value={paymentForm.expiryDate}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPaymentForm({ ...paymentForm, expiryDate: e.target.value })
-              }
-              error={Boolean(paymentErrors.expiryDate)}
-              helperText={paymentErrors.expiryDate}
-              margin="dense"
-            />
-
-            <TextField
-              fullWidth
-              label="CVV"
-              type="password"
-              value={paymentForm.cvv}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPaymentForm({ ...paymentForm, cvv: e.target.value.replace(/\D/g, "").slice(0, 3) })
-              }
-              error={Boolean(paymentErrors.cvv)}
-              helperText={paymentErrors.cvv}
-              margin="dense"
-              slotProps={{
-                htmlInput: { inputMode: "numeric", maxLength: 3 },
-              }}
-            />
-          </Box>
-
-          <Divider sx={{ my: 2 }} />
-
-          <Typography sx={{ fontWeight: "bold", mb: 1 }}>
-            Shipping Address
-          </Typography>
-
-          <TextField
-            fullWidth
-            label="Door Number"
-            value={paymentForm.doorNumber}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPaymentForm({ ...paymentForm, doorNumber: e.target.value })
-            }
-            error={Boolean(paymentErrors.doorNumber)}
-            helperText={paymentErrors.doorNumber}
-            margin="dense"
-          />
-
-          <TextField
-            fullWidth
-            label="Flat / Street Address"
-            value={paymentForm.flatAddress}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPaymentForm({ ...paymentForm, flatAddress: e.target.value })
-            }
-            error={Boolean(paymentErrors.flatAddress)}
-            helperText={paymentErrors.flatAddress}
-            margin="dense"
-          />
-
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <TextField
-              fullWidth
-              label="Lane"
-              value={paymentForm.lane}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPaymentForm({ ...paymentForm, lane: e.target.value })
-              }
-              error={Boolean(paymentErrors.lane)}
-              helperText={paymentErrors.lane}
-              margin="dense"
-            />
-
-            <Autocomplete
-              fullWidth
-              options={shippingLocations.map(
-                (location: ShippingLocation) => `${location.city}|${location.postalCode}`
-              )}
-              value={selectedPlace || null}
-              onChange={(_event: any, value: string | null) => handlePlaceSelection(value || "")}
-              loading={shippingLocationsLoading}
-              renderInput={(params: any) => (
-                <TextField
-                  {...params}
-                  label="Select Place (City - PIN)"
-                  margin="dense"
-                  helperText={
-                    shippingLocationsLoading
-                      ? "Loading places..."
-                      : "Type to search city or PIN from India places database"
-                  }
-                />
-              )}
-            />
-          </Box>
-
-          <Box sx={{ display: "flex", gap: 2 }}>
-
-            <TextField
-              fullWidth
-              label="City"
-              value={paymentForm.city}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPaymentForm({ ...paymentForm, city: e.target.value })
-              }
-              error={Boolean(paymentErrors.city)}
-              helperText={paymentErrors.city}
-              margin="dense"
-            />
-
-            <TextField
-              fullWidth
-              label="Postal Code"
-              value={paymentForm.postalCode}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPaymentForm({ ...paymentForm, postalCode: e.target.value.replace(/\D/g, "").slice(0, 6) })
-              }
-              error={Boolean(paymentErrors.postalCode)}
-              helperText={paymentErrors.postalCode}
-              margin="dense"
-              slotProps={{
-                htmlInput: { inputMode: "numeric", maxLength: 6 },
-              }}
-            />
-          </Box>
-
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-            Shipping distance is auto-fetched from India location database using City + Postal Code.
-          </Typography>
-
-          <FormControlLabel
-            sx={{ mt: 1 }}
-            control={
-              <Checkbox
-                checked={saveCardForAccount}
+              <TextField
+                fullWidth
+                label="Card Holder Name"
+                value={paymentForm.cardHolderName}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setSaveCardForAccount(e.target.checked)
+                  setPaymentForm({ ...paymentForm, cardHolderName: e.target.value })
                 }
+                error={Boolean(paymentErrors.cardHolderName)}
+                helperText={paymentErrors.cardHolderName}
+                margin="dense"
               />
-            }
-            label="Save this card in my account"
-          />
 
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-            CVV is never saved.
-          </Typography>
+              <TextField
+                fullWidth
+                label="Card Number"
+                value={paymentForm.cardNumber}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPaymentForm({
+                    ...paymentForm,
+                    cardNumber: normalizeCardNumber(e.target.value),
+                  })
+                }
+                error={Boolean(paymentErrors.cardNumber)}
+                helperText={paymentErrors.cardNumber || "Enter 16-digit card number"}
+                margin="dense"
+                slotProps={{
+                  htmlInput: { inputMode: "numeric", maxLength: 19 },
+                }}
+              />
 
-          <Typography sx={{ mt: 2, fontWeight: "bold" }}>
-            Total Payable: ₹{calculateTotalPrice().toFixed(2)}
-          </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+                Card type (first 6 digits): {currentCardType === "UNKNOWN" ? "Enter first 6 digits" : currentCardType}
+              </Typography>
+
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Expiry (MM/YY)"
+                  value={paymentForm.expiryDate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPaymentForm({ ...paymentForm, expiryDate: e.target.value })
+                  }
+                  error={Boolean(paymentErrors.expiryDate)}
+                  helperText={paymentErrors.expiryDate}
+                  margin="dense"
+                />
+
+                <TextField
+                  fullWidth
+                  label="CVV"
+                  type="password"
+                  value={paymentForm.cvv}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPaymentForm({ ...paymentForm, cvv: e.target.value.replace(/\D/g, "").slice(0, 3) })
+                  }
+                  error={Boolean(paymentErrors.cvv)}
+                  helperText={paymentErrors.cvv}
+                  margin="dense"
+                  slotProps={{
+                    htmlInput: { inputMode: "numeric", maxLength: 3 },
+                  }}
+                />
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+                Shipping Address
+              </Typography>
+
+              <TextField
+                fullWidth
+                label="Door Number"
+                value={paymentForm.doorNumber}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPaymentForm({ ...paymentForm, doorNumber: e.target.value })
+                }
+                error={Boolean(paymentErrors.doorNumber)}
+                helperText={paymentErrors.doorNumber}
+                margin="dense"
+              />
+
+              <TextField
+                fullWidth
+                label="Flat / Street Address"
+                value={paymentForm.flatAddress}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPaymentForm({ ...paymentForm, flatAddress: e.target.value })
+                }
+                error={Boolean(paymentErrors.flatAddress)}
+                helperText={paymentErrors.flatAddress}
+                margin="dense"
+              />
+
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Lane"
+                  value={paymentForm.lane}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPaymentForm({ ...paymentForm, lane: e.target.value })
+                  }
+                  error={Boolean(paymentErrors.lane)}
+                  helperText={paymentErrors.lane}
+                  margin="dense"
+                />
+
+                <Autocomplete
+                  fullWidth
+                  options={shippingLocations.map(
+                    (location: ShippingLocation) => `${location.city}|${location.postalCode}`
+                  )}
+                  value={selectedPlace || null}
+                  onChange={(_event: any, value: string | null) => handlePlaceSelection(value || "")}
+                  loading={shippingLocationsLoading}
+                  renderInput={(params: any) => (
+                    <TextField
+                      {...params}
+                      label="Select Place (City - PIN)"
+                      margin="dense"
+                      helperText={
+                        shippingLocationsLoading
+                          ? "Loading places..."
+                          : "Type to search city or PIN from India places database"
+                      }
+                    />
+                  )}
+                />
+              </Box>
+
+              <Box sx={{ display: "flex", gap: 2 }}>
+
+                <TextField
+                  fullWidth
+                  label="City"
+                  value={paymentForm.city}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPaymentForm({ ...paymentForm, city: e.target.value })
+                  }
+                  error={Boolean(paymentErrors.city)}
+                  helperText={paymentErrors.city}
+                  margin="dense"
+                />
+
+                <TextField
+                  fullWidth
+                  label="Postal Code"
+                  value={paymentForm.postalCode}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPaymentForm({ ...paymentForm, postalCode: e.target.value.replace(/\D/g, "").slice(0, 6) })
+                  }
+                  error={Boolean(paymentErrors.postalCode)}
+                  helperText={paymentErrors.postalCode}
+                  margin="dense"
+                  slotProps={{
+                    htmlInput: { inputMode: "numeric", maxLength: 6 },
+                  }}
+                />
+              </Box>
+
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+                Shipping distance is auto-fetched from India location database using City + Postal Code.
+              </Typography>
+
+              <FormControlLabel
+                sx={{ mt: 1 }}
+                control={
+                  <Checkbox
+                    checked={saveCardForAccount}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setSaveCardForAccount(e.target.checked)
+                    }
+                  />
+                }
+                label="Save this card in my account"
+              />
+
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+                CVV is never saved.
+              </Typography>
+
+              <Typography sx={{ mt: 2, fontWeight: "bold" }}>
+                Item Bill (before GST and shipping): ₹{calculateTotalPrice().toFixed(2)}
+              </Typography>
+            </>
+          )}
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleCloseCheckoutDialog} variant="outlined">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirmCheckout} variant="contained">
-            Pay & Place Order
-          </Button>
+          {checkoutSummary ? (
+            <Button onClick={handleCloseCheckoutDialog} variant="contained">
+              Close
+            </Button>
+          ) : (
+            <>
+              <Button onClick={handleCloseCheckoutDialog} variant="outlined">
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmCheckout} variant="contained">
+                Pay & Place Order
+              </Button>
+            </>
+          )}
         </DialogActions>
       </Dialog>
     </Container>

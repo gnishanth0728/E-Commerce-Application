@@ -5,6 +5,8 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import CartPage from "../pages/CartPage";
 import OrdersPage from "../pages/OrdersPage";
+import ProfilePage from "../pages/ProfilePage";
+import WishlistPage from "../pages/WishlistPage";
 
 export default function AppRoutes() {
   return (
@@ -15,6 +17,8 @@ export default function AppRoutes() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
       </Routes>
     </BrowserRouter>
   );

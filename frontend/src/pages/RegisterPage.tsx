@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 import {
   Box,
@@ -87,6 +88,8 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     watch,
+    setError,
+    clearErrors,
     formState: {
       errors,
       isValid
@@ -116,6 +119,7 @@ export default function RegisterPage() {
   ) => {
     try {
       setLoading(true);
+      clearErrors("email");
 
       await authApi.post(
         "/register",
@@ -138,10 +142,34 @@ export default function RegisterPage() {
       }, 1500);
 
     } catch (error) {
+      let errorMessage =
+        "Registration Failed";
 
-      setMessage(
-        "Registration Failed"
-      );
+      if (axios.isAxiosError(error)) {
+        const responseData =
+          error.response?.data;
+
+        errorMessage =
+          responseData?.message ||
+          responseData?.detail ||
+          (typeof responseData === "string"
+            ? responseData
+            : null) ||
+          errorMessage;
+      }
+
+      if (
+        errorMessage
+          .toLowerCase()
+          .includes("email already exists")
+      ) {
+        setError("email", {
+          type: "server",
+          message: errorMessage
+        });
+      }
+
+      setMessage(errorMessage);
 
       setSeverity("error");
       setOpenSnackbar(true);

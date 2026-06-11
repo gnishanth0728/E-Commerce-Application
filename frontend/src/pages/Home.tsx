@@ -24,6 +24,8 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 import {
   useState,
@@ -34,6 +36,7 @@ import {
 } from "react";
 import productApi from "../api/productApi";
 import { addToCart, getCart } from "../api/cartApi";
+import { addToWishlist, removeFromWishlist } from "../api/wishlistApi";
 import { Link, useNavigate } from "react-router-dom";
 
 
@@ -59,6 +62,9 @@ export default function Home() {
 
   const [cartItemCount, setCartItemCount] =
     useState(0);
+
+  const [wishlistItems, setWishlistItems] =
+    useState<Set<number>>(new Set());
 
   const loadCartCount = async () => {
     try {
@@ -113,6 +119,54 @@ export default function Home() {
       setSnackbar({
         open: true,
         message: error.response?.data?.message || "Failed to add item to cart",
+        severity: "error"
+      });
+    }
+  };
+
+  const handleToggleWishlist = async (product: any) => {
+    if (!token) {
+      setSnackbar({
+        open: true,
+        message: "Please login to use wishlist",
+        severity: "error"
+      });
+      return;
+    }
+
+    try {
+      const isInWishlist = wishlistItems.has(product.id);
+      
+      if (isInWishlist) {
+        await removeFromWishlist(product.id);
+        setWishlistItems((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(product.id);
+          return newSet;
+        });
+        setSnackbar({
+          open: true,
+          message: "Removed from wishlist",
+          severity: "success"
+        });
+      } else {
+        await addToWishlist({
+          productId: product.id,
+          productName: product.name,
+          productPrice: product.price,
+          productImageUrl: product.imageUrl
+        });
+        setWishlistItems((prev) => new Set(prev).add(product.id));
+        setSnackbar({
+          open: true,
+          message: "Added to wishlist",
+          severity: "success"
+        });
+      }
+    } catch (error: any) {
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || "Failed to update wishlist",
         severity: "error"
       });
     }
@@ -430,7 +484,12 @@ const totalPages = Math.ceil(
                   setAnchorEl(null)
                 }
               >
-                <MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setAnchorEl(null);
+                    navigate("/profile");
+                  }}
+                >
                   My Profile
                 </MenuItem>
 
@@ -443,7 +502,12 @@ const totalPages = Math.ceil(
                   Orders
                 </MenuItem>
 
-                <MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setAnchorEl(null);
+                    navigate("/wishlist");
+                  }}
+                >
                   Wishlist
                 </MenuItem>
 
@@ -756,6 +820,32 @@ const totalPages = Math.ceil(
                       }
                     }}
                   >
+                    {/* WISHLIST BUTTON */}
+                    <IconButton
+                      onClick={() => handleToggleWishlist(product)}
+                      sx={{
+                        position: "absolute",
+                        top: 10,
+                        left: 10,
+                        bgcolor: "rgba(255, 255, 255, 0.9)",
+                        "&:hover": {
+                          bgcolor: "rgba(255, 255, 255, 1)"
+                        },
+                        zIndex: 2,
+                        width: 40,
+                        height: 40,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      }}
+                    >
+                      {wishlistItems.has(product.id) ? (
+                        <FavoriteIcon sx={{ color: "#ff5252" }} />
+                      ) : (
+                        <FavoriteBorderIcon sx={{ color: "#999" }} />
+                      )}
+                    </IconButton>
+
                     {/* DISCOUNT BADGE */}
                     <Box
                       sx={{

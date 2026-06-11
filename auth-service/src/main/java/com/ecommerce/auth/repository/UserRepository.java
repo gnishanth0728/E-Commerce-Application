@@ -13,4 +13,8 @@ public interface UserRepository
 
     boolean existsByEmail(
             String email);
+
+    boolean existsByEmailAndIdNot(
+            String email,
+            Long id);
 }

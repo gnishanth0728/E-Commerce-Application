@@ -45,3 +45,15 @@ CREATE TABLE IF NOT EXISTS saved_cards (
 	updated_at BIGINT NOT NULL,
 	INDEX idx_saved_card_user_email (user_email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS wishlist (
+	id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	user_email VARCHAR(255) NOT NULL,
+	product_id BIGINT NOT NULL,
+	product_name VARCHAR(255) NOT NULL,
+	product_price DECIMAL(10, 2),
+	product_image_url VARCHAR(500),
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	UNIQUE KEY uk_user_product (user_email, product_id),
+	INDEX idx_user_email_created (user_email, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

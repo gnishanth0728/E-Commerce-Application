@@ -2,8 +2,11 @@ package com.ecommerce.auth.controller;
 
 import com.ecommerce.auth.dto.AuthResponse;
 import com.ecommerce.auth.dto.LoginRequest;
+import com.ecommerce.auth.dto.ProfileResponse;
 import com.ecommerce.auth.dto.RegisterRequest;
+import com.ecommerce.auth.dto.UpdateProfileRequest;
 import com.ecommerce.auth.service.AuthService;
+import java.security.Principal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,5 +31,23 @@ public class AuthController {
             @RequestBody LoginRequest request) {
 
         return authService.login(request);
+    }
+
+    @GetMapping("/profile")
+    public ProfileResponse profile(
+            Principal principal) {
+
+        return authService.getProfile(
+                principal.getName());
+    }
+
+    @PutMapping("/profile")
+    public AuthResponse updateProfile(
+            Principal principal,
+            @RequestBody UpdateProfileRequest request) {
+
+        return authService.updateProfile(
+                principal.getName(),
+                request);
     }
 }
