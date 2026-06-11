@@ -6,6 +6,7 @@ import {
   Card,
   CardMedia,
   Container,
+  Divider,
   Grid,
   IconButton,
   Paper,
@@ -210,15 +211,52 @@ const CartPage: React.FC = () => {
             >
               <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>Order Summary</Typography>
 
-              <Box sx={{ mb: 2, p: 2, borderRadius: 2, bgcolor: "#f8fbff" }}>
+              <Box sx={{ mb: 2, p: 2, borderRadius: 2, bgcolor: "#f8fbff", border: "1px solid #e7efff" }}>
                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                  <Typography sx={{ fontWeight: 700 }}>Item Bill ({totalItems})</Typography>
-                  <Typography sx={{ fontWeight: 800 }}>₹{itemBill.toFixed(2)}</Typography>
+                  <Typography sx={{ fontWeight: 700, color: "#334155" }}>Item Bill ({totalItems})</Typography>
+                  <Typography sx={{ fontWeight: 800, color: "#0f172a" }}>₹{itemBill.toFixed(2)}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography>GST + Shipping</Typography>
-                  <Typography color="text.secondary">Calculated at checkout</Typography>
+                  <Typography sx={{ color: "#334155" }}>GST + Shipping</Typography>
+                  <Typography color="text.secondary" sx={{ fontWeight: 600 }}>Calculated at checkout</Typography>
                 </Box>
+              </Box>
+
+              <Divider sx={{ my: 1.5 }} />
+
+              <Typography sx={{ mb: 1.25, fontWeight: 700, color: "#0f172a" }}>Cart Items</Typography>
+              <Box
+                sx={{
+                  mb: 2,
+                  maxHeight: 220,
+                  overflow: "auto",
+                  pr: 0.5,
+                  display: "grid",
+                  gap: 1,
+                }}
+              >
+                {cart.items.map((item: CartItem) => (
+                  <Box
+                    key={item.id}
+                    sx={{
+                      p: 1.25,
+                      borderRadius: 1.5,
+                      bgcolor: "#ffffff",
+                      border: "1px solid #e5e7eb",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 1,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: "#1e293b", fontWeight: 600 }}>
+                      {item.productName} x {item.quantity}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#0f172a", fontWeight: 700 }}>
+                      ₹{(item.price * item.quantity).toFixed(2)}
+                    </Typography>
+                  </Box>
+                ))}
               </Box>
 
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>

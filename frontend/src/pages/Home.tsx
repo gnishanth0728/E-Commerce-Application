@@ -168,11 +168,7 @@ export default function Home() {
       
       if (isInWishlist) {
         await removeFromWishlist(resolvedProductId);
-        setWishlistItems((prev: Set<number>) => {
-          const newSet = new Set(prev);
-          newSet.delete(resolvedProductId);
-          return newSet;
-        });
+        await loadWishlistIds();
         setSnackbar({
           open: true,
           message: "Removed from wishlist",
@@ -185,7 +181,7 @@ export default function Home() {
           productPrice: resolvedProductPrice,
           productImageUrl: resolvedImageUrl
         });
-        setWishlistItems((prev: Set<number>) => new Set(prev).add(resolvedProductId));
+        await loadWishlistIds();
         setSnackbar({
           open: true,
           message: "Added to wishlist",
@@ -193,9 +189,21 @@ export default function Home() {
         });
       }
     } catch (error: any) {
+      const backendMessage = error.response?.data?.message || error.response?.data?.error || "Failed to update wishlist";
+
+      if (String(backendMessage).toLowerCase().includes("already in wishlist")) {
+        await loadWishlistIds();
+        setSnackbar({
+          open: true,
+          message: "Item already in wishlist",
+          severity: "success"
+        });
+        return;
+      }
+
       setSnackbar({
         open: true,
-        message: error.response?.data?.message || "Failed to update wishlist",
+        message: backendMessage,
         severity: "error"
       });
     }

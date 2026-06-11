@@ -25,7 +25,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { getCart } from "../api/cartApi";
-import { checkoutCart, getSavedCard } from "../api/orderApi";
+import { checkoutCart, getSavedCard, previewOrder, type OrderPreviewResponse } from "../api/orderApi";
 import { getShippingLocations } from "../api/shippingApi";
 
 interface CartItem {
@@ -71,6 +71,14 @@ interface CheckoutSummary {
   finalAmount: number;
 }
 
+interface OrderCostPreview {
+  totalItems: number;
+  itemBill: number;
+  gstAmount: number;
+  shippingCost: number;
+  finalAmount: number;
+}
+
 const emptyForm: PaymentForm = {
   cardHolderName: "",
   cardNumber: "",
@@ -100,6 +108,8 @@ const CheckoutPaymentPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [paymentErrors, setPaymentErrors] = useState<Partial<PaymentForm>>({});
   const [summary, setSummary] = useState<CheckoutSummary | null>(null);
+  const [orderCostPreview, setOrderCostPreview] = useState<OrderCostPreview | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [maxUnlockedStep, setMaxUnlockedStep] = useState(0);
   const [paymentForm, setPaymentForm] = useState<PaymentForm>(emptyForm);
@@ -292,6 +302,39 @@ const CheckoutPaymentPage: React.FC = () => {
       setError(backendMessage || "Payment failed. Please try again.");
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const loadOrderCostPreview = async (): Promise<boolean> => {
+    try {
+      setPreviewLoading(true);
+      setError(null);
+      const response = await previewOrder({
+        doorNumber: paymentForm.doorNumber,
+        flatAddress: paymentForm.flatAddress,
+        lane: paymentForm.lane,
+        city: paymentForm.city,
+        postalCode: paymentForm.postalCode,
+      });
+      const preview: OrderPreviewResponse = response.data;
+      setOrderCostPreview({
+        totalItems: Number(preview.totalItems || 0),
+        itemBill: Number(preview.itemBill || 0),
+        gstAmount: Number(preview.gstAmount || 0),
+        shippingCost: Number(preview.shippingCost || 0),
+        finalAmount: Number(preview.finalAmount || 0),
+      });
+      return true;
+    } catch (err: any) {
+      const responseData = err.response?.data;
+      const backendMessage =
+        responseData?.message ||
+        responseData?.error ||
+        (typeof responseData === "string" ? responseData : null);
+      setError(backendMessage || "Unable to calculate GST and shipping for review.");
+      return false;
+    } finally {
+      setPreviewLoading(false);
     }
   };
 
@@ -626,6 +669,29 @@ const CheckoutPaymentPage: React.FC = () => {
                       <Typography variant="body2">Holder: {paymentForm.cardHolderName}</Typography>
                     </Paper>
 
+                    <Paper sx={{ p: 2, borderRadius: 2, bgcolor: "#eef6ff", mb: 1.5 }}>
+                      <Typography sx={{ fontWeight: 700, mb: 1 }}>Charges Preview</Typography>
+                      <Box sx={{ display: "grid", gap: 0.6 }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                          <Typography variant="body2">Item Bill</Typography>
+                          <Typography variant="body2">₹{(orderCostPreview?.itemBill ?? itemBill).toFixed(2)}</Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                          <Typography variant="body2">GST</Typography>
+                          <Typography variant="body2">₹{(orderCostPreview?.gstAmount ?? 0).toFixed(2)}</Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                          <Typography variant="body2">Shipping</Typography>
+                          <Typography variant="body2">₹{(orderCostPreview?.shippingCost ?? 0).toFixed(2)}</Typography>
+                        </Box>
+                        <Divider sx={{ my: 0.5 }} />
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                          <Typography sx={{ fontWeight: 700 }}>Estimated Final</Typography>
+                          <Typography sx={{ fontWeight: 800 }}>₹{(orderCostPreview?.finalAmount ?? itemBill).toFixed(2)}</Typography>
+                        </Box>
+                      </Box>
+                    </Paper>
+
                     <Typography variant="body2" color="text.secondary">
                       By placing this order, you confirm shipping details and authorize payment.
                     </Typography>
@@ -654,9 +720,24 @@ const CheckoutPaymentPage: React.FC = () => {
                   <Typography sx={{ fontWeight: 800 }}>₹{itemBill.toFixed(2)}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography>GST + Shipping</Typography>
-                  <Typography color="text.secondary">Calculated at checkout</Typography>
+                  <Typography>GST</Typography>
+                  <Typography color="text.secondary">
+                    {orderCostPreview ? `₹${orderCostPreview.gstAmount.toFixed(2)}` : "Calculated at checkout"}
+                  </Typography>
                 </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.75 }}>
+                  <Typography>Shipping</Typography>
+                  <Typography color="text.secondary">
+                    {orderCostPreview ? `₹${orderCostPreview.shippingCost.toFixed(2)}` : "Calculated at checkout"}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                <Typography sx={{ fontWeight: 700 }}>Estimated Final</Typography>
+                <Typography sx={{ fontWeight: 800, color: "#0f4c81" }}>
+                  ₹{(orderCostPreview?.finalAmount ?? itemBill).toFixed(2)}
+                </Typography>
               </Box>
 
               <Divider sx={{ my: 2 }} />
@@ -686,8 +767,8 @@ const CheckoutPaymentPage: React.FC = () => {
               <Button
                 variant="contained"
                 fullWidth
-                disabled={processing || (cart?.items?.length || 0) === 0}
-                onClick={() => {
+                disabled={processing || previewLoading || (cart?.items?.length || 0) === 0}
+                onClick={async () => {
                   if (activeStep === 0) {
                     if (validateShippingForm()) {
                       setActiveStep(1);
@@ -698,16 +779,21 @@ const CheckoutPaymentPage: React.FC = () => {
 
                   if (activeStep === 1) {
                     if (validatePaymentForm()) {
-                      setActiveStep(2);
-                      setMaxUnlockedStep((prev) => Math.max(prev, 2));
+                      const loaded = await loadOrderCostPreview();
+                      if (loaded) {
+                        setActiveStep(2);
+                        setMaxUnlockedStep((prev) => Math.max(prev, 2));
+                      }
                     }
                     return;
                   }
 
-                  void handleConfirmPayment();
+                  await handleConfirmPayment();
                 }}
               >
-                {processing
+                {previewLoading
+                  ? "Calculating Charges..."
+                  : processing
                   ? "Processing..."
                   : activeStep === 0
                     ? "Continue to Payment"

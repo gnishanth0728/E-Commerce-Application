@@ -25,6 +25,22 @@ export interface SavedCardPayload {
   expiryDate: string;
 }
 
+export interface OrderPreviewPayload {
+  doorNumber: string;
+  flatAddress: string;
+  lane: string;
+  city: string;
+  postalCode: string;
+}
+
+export interface OrderPreviewResponse {
+  totalItems: number;
+  itemBill: number;
+  gstAmount: number;
+  shippingCost: number;
+  finalAmount: number;
+}
+
 orderApi.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getToken();
   if (token) {
@@ -36,6 +52,8 @@ orderApi.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 export const checkoutCart = (payload: CheckoutPayload) =>
   orderApi.post("checkout", payload);
+export const previewOrder = (payload: OrderPreviewPayload) =>
+  orderApi.post<OrderPreviewResponse>("preview", payload);
 export const getOrderHistory = () => orderApi.get("");
 export const getSavedCard = () => orderApi.get<SavedCardPayload | null>("saved-card");
 

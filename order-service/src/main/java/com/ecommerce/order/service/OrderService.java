@@ -4,6 +4,7 @@ import com.ecommerce.order.dto.CartResponse;
 import com.ecommerce.order.dto.CheckoutRequest;
 import com.ecommerce.order.dto.CheckoutResponse;
 import com.ecommerce.order.dto.OrderHistoryResponse;
+import com.ecommerce.order.dto.OrderPreviewResponse;
 import com.ecommerce.order.dto.ProductLookupResponse;
 import com.ecommerce.order.dto.SavedCardResponse;
 import com.ecommerce.order.dto.ShippingChargeRequest;
@@ -92,8 +93,12 @@ public class OrderService {
         order.setTotalItems(cart.getTotalItems());
         order.setTotalPrice(cart.getTotalPrice());
 
+        double gstAmount = calculateGstAmount(cart.getItems());
+        ShippingChargeResponse shipping = calculateShipping(request);
+        double shippingCost = shipping.getShippingCost() == null ? 0.0 : shipping.getShippingCost();
+        double finalAmount = cart.getTotalPrice() + gstAmount + shippingCost;
+
         List<OrderItem> orderItems = new ArrayList<>();
-        double gstAmount = 0.0;
         for (CartResponse.CartItemPayload cartItem : cart.getItems()) {
             ProductLookupResponse product = fetchProductById(cartItem.getProductId());
             String categoryName = product != null && product.getCategory() != null && product.getCategory().getName() != null
@@ -101,8 +106,6 @@ public class OrderService {
                     : "others";
             double gstRate = getGstRateForCategory(categoryName);
             double itemTotal = cartItem.getPrice() * cartItem.getQuantity();
-            double itemGstAmount = (itemTotal * gstRate) / 100.0;
-            gstAmount += itemGstAmount;
 
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
@@ -116,10 +119,6 @@ public class OrderService {
             orderItem.setTotalPrice(itemTotal);
             orderItems.add(orderItem);
         }
-
-        ShippingChargeResponse shipping = calculateShipping(request);
-        double shippingCost = shipping.getShippingCost() == null ? 0.0 : shipping.getShippingCost();
-        double finalAmount = cart.getTotalPrice() + gstAmount + shippingCost;
 
         order.setGstAmount(gstAmount);
         order.setShippingCost(shippingCost);
@@ -156,6 +155,32 @@ public class OrderService {
                 order.getTotalPrice(),
                 checkoutTime,
                 "Payment successful and order placed"
+        );
+    }
+
+    public OrderPreviewResponse previewOrder(String userEmail, String authorizationHeader, CheckoutRequest request) {
+        validateShippingRequest(request);
+        CartResponse cart = fetchCart(authorizationHeader);
+
+        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+            throw new IllegalStateException("Cart is empty. Add items before checkout.");
+        }
+
+        if (cart.getUserEmail() != null && !cart.getUserEmail().equalsIgnoreCase(userEmail)) {
+            throw new IllegalStateException("Invalid preview request for user cart.");
+        }
+
+        double gstAmount = calculateGstAmount(cart.getItems());
+        ShippingChargeResponse shipping = calculateShipping(request);
+        double shippingCost = shipping.getShippingCost() == null ? 0.0 : shipping.getShippingCost();
+        double finalAmount = cart.getTotalPrice() + gstAmount + shippingCost;
+
+        return new OrderPreviewResponse(
+                cart.getTotalItems(),
+                cart.getTotalPrice(),
+                gstAmount,
+                shippingCost,
+                finalAmount
         );
     }
 
@@ -273,6 +298,48 @@ public class OrderService {
             throw new IllegalStateException("Postal code must be a valid 6 digit Indian PIN code.");
         }
 
+    }
+
+    private void validateShippingRequest(CheckoutRequest request) {
+        if (request == null) {
+            throw new IllegalStateException("Shipping details are required.");
+        }
+
+        if (request.getDoorNumber() == null || request.getDoorNumber().trim().isEmpty()) {
+            throw new IllegalStateException("Door number is required.");
+        }
+
+        if (request.getFlatAddress() == null || request.getFlatAddress().trim().isEmpty()) {
+            throw new IllegalStateException("Flat or street address is required.");
+        }
+
+        if (request.getLane() == null || request.getLane().trim().isEmpty()) {
+            throw new IllegalStateException("Lane is required.");
+        }
+
+        if (request.getCity() == null || request.getCity().trim().isEmpty()) {
+            throw new IllegalStateException("City is required.");
+        }
+
+        if (request.getPostalCode() == null || !request.getPostalCode().trim().matches("^[0-9]{6}$")) {
+            throw new IllegalStateException("Postal code must be a valid 6 digit Indian PIN code.");
+        }
+    }
+
+    private double calculateGstAmount(List<CartResponse.CartItemPayload> cartItems) {
+        double gstAmount = 0.0;
+
+        for (CartResponse.CartItemPayload cartItem : cartItems) {
+            ProductLookupResponse product = fetchProductById(cartItem.getProductId());
+            String categoryName = product != null && product.getCategory() != null && product.getCategory().getName() != null
+                    ? product.getCategory().getName()
+                    : "others";
+            double gstRate = getGstRateForCategory(categoryName);
+            double itemTotal = cartItem.getPrice() * cartItem.getQuantity();
+            gstAmount += (itemTotal * gstRate) / 100.0;
+        }
+
+        return gstAmount;
     }
 
     private void upsertSavedCard(String userEmail, CheckoutRequest request) {

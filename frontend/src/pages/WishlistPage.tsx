@@ -62,9 +62,7 @@ const WishlistPage: React.FC = () => {
   const handleRemoveFromWishlist = async (productId: number) => {
     try {
       await removeFromWishlist(productId);
-      setWishlistItems((prev) =>
-        prev.filter((item) => item.productId !== productId)
-      );
+      await loadWishlist();
       setSnackbar({
         open: true,
         message: "Item removed from wishlist",

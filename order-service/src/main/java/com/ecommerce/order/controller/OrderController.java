@@ -3,6 +3,7 @@ package com.ecommerce.order.controller;
 import com.ecommerce.order.dto.CheckoutRequest;
 import com.ecommerce.order.dto.CheckoutResponse;
 import com.ecommerce.order.dto.OrderHistoryResponse;
+import com.ecommerce.order.dto.OrderPreviewResponse;
 import com.ecommerce.order.dto.SavedCardResponse;
 import com.ecommerce.order.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,20 @@ public class OrderController {
         String userEmail = (String) authentication.getPrincipal();
         try {
             return orderService.checkout(userEmail, authorizationHeader, request);
+        } catch (IllegalStateException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    @PostMapping("/preview")
+    public OrderPreviewResponse preview(
+            Authentication authentication,
+            @RequestBody CheckoutRequest request,
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        String userEmail = (String) authentication.getPrincipal();
+        try {
+            return orderService.previewOrder(userEmail, authorizationHeader, request);
         } catch (IllegalStateException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
         }
