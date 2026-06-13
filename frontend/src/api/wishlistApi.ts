@@ -3,7 +3,7 @@ import type { InternalAxiosRequestConfig } from "axios";
 import { getToken } from "../services/tokenService";
 
 const wishlistApi = axios.create({
-  baseURL: "/api/wishlist/",
+  baseURL: "/api/wishlist",
 });
 
 // Add JWT token to requests
@@ -32,3 +32,4 @@ export const checkIfInWishlist = (productId: number) =>
   wishlistApi.get(`check/${productId}`);
 
 export default wishlistApi;
+

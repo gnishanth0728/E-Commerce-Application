@@ -26,6 +26,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import logo from "../assets/icon-logo.png";
 
 import {
   useState,
@@ -165,7 +166,7 @@ export default function Home() {
       }
 
       const isInWishlist = wishlistItems.has(resolvedProductId);
-      
+
       if (isInWishlist) {
         await removeFromWishlist(resolvedProductId);
         await loadWishlistIds();
@@ -392,15 +393,45 @@ const totalPages = Math.ceil(
           boxShadow: "none"
         }}
       >
-        <Toolbar sx={{ gap: 3 }}>
+        <Toolbar sx={{
+          minheight: "80px !important",
+          }}>
 
-          <Typography
+          {/* <Typography
             variant="h5"
             sx={{ fontWeight: "bold" }}
           >
             ShopEase
-          </Typography>
+          </Typography> */}
+          <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                flexShrink: 0
+              }}
+            >
+              <Box
+                component="img"
+                src={logo}
+                alt="ShopEase"
+                sx={{
+                  height: 56,
+                  width: 56,
+                  objectFit: "contain",
+                }}
+              />
 
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  color: "white",
+                }}
+              >
+                ShopEase
+              </Typography>
+            </Box>
           <TextField
             placeholder="Search products..."
             value={search}
