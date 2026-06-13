@@ -15,66 +15,59 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JwtAuthFilter jwtAuthFilter)
-            throws Exception {
+  @Bean
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity http,
+      JwtAuthFilter jwtAuthFilter)
+      throws Exception {
 
-        http
-                .cors(cors -> {})
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth ->
-                        auth
-                                .requestMatchers(
-                                        "/api/auth/login",
-                                        "/api/auth/register"
-                                )
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated())
-                .addFilterBefore(
-                        jwtAuthFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+    http
+        .cors(cors -> {
+        })
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(
+                "/api/auth/login",
+                "/api/auth/register")
+            .permitAll()
+            .anyRequest()
+            .authenticated())
+        .addFilterBefore(
+            jwtAuthFilter,
+            UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+    return http.build();
+  }
 
-    @Bean
-    public CorsConfigurationSource
-    corsConfigurationSource() {
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration config =
-                new CorsConfiguration();
+    CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOriginPatterns(
-                List.of(
-                        "http://localhost:*",
-                        "http://127.0.0.1:*",
-                        "http://18.207.151.13"
-                ));
+    config.setAllowedOriginPatterns(
+        List.of(
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "http://18.207.151.13"));
 
-        config.setAllowedMethods(
-                List.of(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "OPTIONS"
-                ));
+    config.setAllowedMethods(
+        List.of(
+            "GET",
+            "POST",
+            "PUT",
+            "OPTIONS"));
 
-        config.setAllowedHeaders(
-                List.of("*"));
+    config.setAllowedHeaders(
+        List.of("*"));
 
-        config.setAllowCredentials(true);
+    config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource
-                source =
-                new UrlBasedCorsConfigurationSource();
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration(
-                "/**",
-                config);
+    source.registerCorsConfiguration(
+        "/**",
+        config);
 
-        return source;
-    }
+    return source;
+  }
 }
