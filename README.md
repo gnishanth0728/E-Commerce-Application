@@ -141,7 +141,6 @@ Vite proxy (`frontend/vite.config.ts`) forwards:
 
 - `frontend/nginx.conf`
 - `docker-compose.yml`
-- `frontend/docker-compose.yml`
 - `frontend/Dockerfile`
 - `frontend/src/api/authApi.ts`
 - `frontend/src/api/productApi.ts`
